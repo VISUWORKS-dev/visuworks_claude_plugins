@@ -1,0 +1,16 @@
+{
+  "description": "Notion 워크스페이스 전체 검색을 사용자 인가(ask) 게이트 뒤로 보낸다. 지정 정본 URL 밖으로 자동 탐색이 새는 것을 Cowork 툴 레벨에서 막는다.",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "mcp__.*notion.*search",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/gate-notion-search.sh"
+          }
+        ]
+      }
+    ]
+  }
+}

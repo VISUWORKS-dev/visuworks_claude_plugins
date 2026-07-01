@@ -1,0 +1,33 @@
+{
+  "name": "visuworks-work-manager",
+  "version": "1.1.0",
+  "description": "비쥬웍스 작업 컨텍스트 정본(claude.md / context.md / 지식 문서 / history.md)을 Notion에 관리하는 스킬 + 워크스페이스 자동 검색을 사용자 인가(ask) 게이트로 돌리는 PreToolUse 훅. Notion URL은 설치 시 입력받으며 repo에 저장되지 않는다.",
+  "keywords": ["notion", "context", "visuworks", "memory"],
+  "author": { "name": "visuworks" },
+  "userConfig": {
+    "claude_md_url": {
+      "type": "string",
+      "title": "claude.md Notion URL",
+      "description": "규칙·표준 정본 페이지의 Notion URL",
+      "sensitive": false
+    },
+    "context_md_url": {
+      "type": "string",
+      "title": "context.md Notion URL",
+      "description": "현재 상태 + 지식 문서 인덱스 정본 페이지의 Notion URL",
+      "sensitive": false
+    },
+    "history_md_url": {
+      "type": "string",
+      "title": "history.md Notion URL",
+      "description": "대화/작업 이력 정본 페이지의 Notion URL",
+      "sensitive": false
+    },
+    "knowledge_parent_url": {
+      "type": "string",
+      "title": "지식 문서 부모 Notion URL",
+      "description": "주제별 지식 문서가 생성·보관될 부모 페이지의 Notion URL",
+      "sensitive": false
+    }
+  }
+}
