@@ -88,10 +88,12 @@ description: 비쥬웍스 작업 컨텍스트의 메인 정본인 Obsidian vault
 
 ## Notion과의 분담
 
-- **이 스킬(Obsidian)**: 기본 기록소. 결정·지식·상태·이력의 모든 저장.
+- **이 스킬(Obsidian)**: 정본 기록소. 규칙·결정·지식·상태·이력의 모든 저장.
+  Notion에는 claude.md/context.md/knowledge/history 레이어가 **없다.**
 - **visuworks-work-manager(Notion)**: 회의록 작성, 팀 공용 문서 작성, "Notion에" 명시 요청.
-- Notion에서 정보를 **읽어와** vault에 정리하는 작업은 이 스킬이 담당한다
-  (Notion 읽기는 지정 정본 URL 범위 규율을 따른다).
+- Notion에서 정보를 **읽어와** vault에 정리하는 작업은 이 스킬이 담당한다.
+  단, 읽기는 사용자가 지정한 페이지에 한하며 워크스페이스 검색/쿼리는 사용자
+  인가 없이 실행하지 않는다.
 
 ## 하지 말 것
 

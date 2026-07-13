@@ -1,7 +1,7 @@
 {
   "name": "visuworks-work-manager",
-  "version": "1.2.0",
-  "description": "비쥬웍스 작업 컨텍스트 관리 플러그인. 메인 정본은 Obsidian vault(obsidian-vault-manager 스킬), Notion은 회의록·팀 공용 문서 작성과 정보 읽기 전용(visuworks-work-manager 스킬 + 워크스페이스 검색 ask 게이트 훅). vault 경로와 Notion URL은 설치 시 입력받으며 repo에 저장되지 않는다.",
+  "version": "1.3.0",
+  "description": "비쥬웍스 작업 컨텍스트 관리 플러그인. 정본은 Obsidian vault 하나(obsidian-vault-manager 스킬)이며, Notion은 회의록·팀 공용 문서 작성 전용(visuworks-work-manager 스킬 + 워크스페이스 검색·쿼리 ask 게이트 훅). vault 경로는 설치 시 입력받으며 repo에 저장되지 않는다.",
   "keywords": [
     "obsidian",
     "notion",
@@ -16,31 +16,7 @@
     "obsidian_vault_path": {
       "type": "string",
       "title": "Obsidian vault 경로",
-      "description": "메인 기록소로 쓸 Obsidian vault의 절대 경로 (예: /Users/me/Documents/MyVault)",
-      "sensitive": false
-    },
-    "claude_md_url": {
-      "type": "string",
-      "title": "claude.md Notion URL",
-      "description": "규칙·표준 정본 페이지의 Notion URL",
-      "sensitive": false
-    },
-    "context_md_url": {
-      "type": "string",
-      "title": "context.md Notion URL",
-      "description": "현재 상태 + 지식 문서 인덱스 정본 페이지의 Notion URL",
-      "sensitive": false
-    },
-    "history_md_url": {
-      "type": "string",
-      "title": "history.md Notion URL",
-      "description": "대화/작업 이력 정본 페이지의 Notion URL",
-      "sensitive": false
-    },
-    "knowledge_parent_url": {
-      "type": "string",
-      "title": "지식 문서 부모 Notion URL",
-      "description": "주제별 지식 문서가 생성·보관될 부모 페이지의 Notion URL",
+      "description": "정본 기록소로 쓸 Obsidian vault의 절대 경로 (예: /Users/me/Documents/MyVault)",
       "sensitive": false
     }
   }
