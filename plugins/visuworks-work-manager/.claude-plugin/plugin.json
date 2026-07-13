@@ -1,10 +1,24 @@
 {
   "name": "visuworks-work-manager",
-  "version": "1.1.0",
-  "description": "비쥬웍스 작업 컨텍스트 정본(claude.md / context.md / 지식 문서 / history.md)을 Notion에 관리하는 스킬 + 워크스페이스 자동 검색을 사용자 인가(ask) 게이트로 돌리는 PreToolUse 훅. Notion URL은 설치 시 입력받으며 repo에 저장되지 않는다.",
-  "keywords": ["notion", "context", "visuworks", "memory"],
-  "author": { "name": "visuworks" },
+  "version": "1.2.0",
+  "description": "비쥬웍스 작업 컨텍스트 관리 플러그인. 메인 정본은 Obsidian vault(obsidian-vault-manager 스킬), Notion은 회의록·팀 공용 문서 작성과 정보 읽기 전용(visuworks-work-manager 스킬 + 워크스페이스 검색 ask 게이트 훅). vault 경로와 Notion URL은 설치 시 입력받으며 repo에 저장되지 않는다.",
+  "keywords": [
+    "obsidian",
+    "notion",
+    "context",
+    "visuworks",
+    "memory"
+  ],
+  "author": {
+    "name": "visuworks"
+  },
   "userConfig": {
+    "obsidian_vault_path": {
+      "type": "string",
+      "title": "Obsidian vault 경로",
+      "description": "메인 기록소로 쓸 Obsidian vault의 절대 경로 (예: /Users/me/Documents/MyVault)",
+      "sensitive": false
+    },
     "claude_md_url": {
       "type": "string",
       "title": "claude.md Notion URL",
