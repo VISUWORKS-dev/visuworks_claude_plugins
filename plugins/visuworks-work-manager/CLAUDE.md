@@ -11,8 +11,24 @@
   1. `<vault>/claude.md` — 전역 규칙·표준 (항상 준수)
   2. `<vault>/context.md` — 활성 프로젝트 목록 + 링크
   3. 현재 대화의 프로젝트가 특정되면 `<vault>/projects/<프로젝트>/context.md`
-- 지식 문서(`knowledge/`)와 `history.md`는 필요할 때만(on-demand) 읽는다.
+  4. 이어서 `<vault>/projects/<프로젝트>/index.md`(있으면) — 프로젝트 자산(지식 문서·첨부·소통 기록) 파악용
+- 지식 문서(`knowledge/`)·`history.md`·`communications/`는 필요할 때만(on-demand) 읽는다.
 - vault 경로에 접근할 수 없으면 사용자에게 해당 폴더 연결을 요청한다. 추측으로 다른 경로를 뒤지지 않는다.
+
+## 프로젝트 범위 제한
+
+- 프로젝트가 특정되면 vault 읽기·검색은 전역 `claude.md`/`context.md` + 해당
+  `projects/<프로젝트>/` 폴더로 한정한다(프로젝트 내에서도 index.md 먼저, 필요한 문서만).
+- 다른 프로젝트 폴더는 사용자가 명시적으로 요청했을 때만 읽는다.
+- 전역 `knowledge/`는 프로젝트 무관 공용 지식이 필요할 때만 on-demand로 읽는다.
+
+## 자동 기록 (명시 요청 없어도 적용)
+
+- 대화에 파일이 첨부되면 obsidian-vault-manager 스킬로 해당 프로젝트에 원본 보관
+  (`assets/`) + 마크다운 자료화를 진행한다(보관 의도가 보이면 바로, 다른 목적의
+  첨부면 해당 작업 후 보관 여부를 한 번 제안).
+- 외부 업체·부서와 주고받은 내용·파일 전달이 언급되면 소통 기록
+  (`communications/<주제>.md`)을 남긴다.
 
 ## Notion (회의록·팀 공용 문서 전용)
 
