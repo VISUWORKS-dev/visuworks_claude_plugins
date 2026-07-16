@@ -10,9 +10,15 @@
   (Notion에는 claude.md/context.md/knowledge/history 레이어가 없다)
 
 ## 구성
-- `skills/obsidian-vault-manager/SKILL.md` — Obsidian vault 4-레이어 관리 스킬 (정본)
-  - vault 구조: 전역 `claude.md`/`context.md`/`knowledge/` + `projects/<프로젝트>/`(context·history·knowledge)
-  - Obsidian 네이티브: YAML frontmatter, [[위키링크]], 태그
+- `skills/obsidian-vault-manager/SKILL.md` — Obsidian vault 관리 스킬 (정본)
+  - vault 구조: 전역 `claude.md`/`context.md`/`knowledge/`/`assets/` +
+    `projects/<프로젝트>/`(context.md·history.md·index.md + knowledge/·assets/·communications/·archive/)
+  - 첨부 파일 처리: 원본은 `assets/YYYY-MM-DD_파일명`으로 보관 + 내용 정리본은 `knowledge/` 주제 문서에 통합 + `index.md` 갱신
+  - 외부 소통 기록: `communications/<주제>.md`에 날짜·상대·전달 파일·요약을 append (history.md는 내부 결정 이력만)
+  - 자산 인덱스: `projects/<p>/index.md`에 knowledge/assets/communications 전체 목록 + 1줄 설명
+  - 스냅샷: 지식 문서를 크게 rewrite하기 전 `archive/`에 날짜 사본 보관
+  - 읽기 범위: 프로젝트 특정 시 전역 claude.md/context.md + 해당 프로젝트 폴더만 읽기 (지시문 강제, 훅 없음)
+  - Obsidian 네이티브: YAML frontmatter, [[위키링크]](비마크다운은 확장자 포함), 태그
   - 로컬은 바로 쓰기(사후 요약 보고), claude.md만 사전 승인
 - `skills/visuworks-work-manager/SKILL.md` — Notion 쓰기 스킬 (회의록·공용 문서 한정)
 - `hooks/hooks.json` + `scripts/gate-notion-search.sh` — 워크스페이스 검색·쿼리 → 사용자 인가(ask) 게이트 (Cowork 전용)
