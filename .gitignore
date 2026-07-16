@@ -1,5 +1,5 @@
 # omc 관련 파일
-.omc/*
+.omc/
 
 # mac 관련 임시파일
 .DS_Store
