@@ -5,14 +5,14 @@
   },
   "metadata": {
     "description": "비쥬웍스 Claude 플러그인 카탈로그",
-    "version": "1.4.0"
+    "version": "1.5.0"
   },
   "plugins": [
     {
       "name": "visuworks-work-manager",
       "source": "./plugins/visuworks-work-manager",
       "description": "비쥬웍스 작업 컨텍스트 관리 플러그인. 정본은 Obsidian vault 하나(obsidian-vault-manager 스킬), Notion은 회의록·팀 공용 문서 작성 전용(visuworks-work-manager 스킬 + 워크스페이스 검색·쿼리 ask 게이트 훅). 첨부 파일 보관·자료화, 외부 소통 기록, 프로젝트 자산 인덱스, 지식 문서 스냅샷, 프로젝트 범위 읽기 제한 포함. vault 경로는 설치 시 입력받는다.",
-      "version": "1.4.0"
+      "version": "1.5.0"
     }
   ]
 }

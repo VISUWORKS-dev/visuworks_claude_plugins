@@ -46,3 +46,9 @@ Cowork 예약 작업으로 주기 실행(예: 매주 금요일). vault의 histor
 항목을 정리·압축하고, 오래된 항목은 아카이브로 옮길지 제안한다.
 ※ 예약 작업은 대화 내용을 자동으로 알지 못한다 — 대화 캡처는 사람이 트리거하고,
    예약 작업은 쌓인 history.md의 정리·아카이브를 맡는다.
+
+## 로컬 수동 업로드 
+cd plugins/visuworks-work-manager
+zip -r visuworks-work-manager.plugin . -x "*.DS_Store" -x ".omc/*" -x ".git/*"
+
+후 ~.plugin파일 업로드
