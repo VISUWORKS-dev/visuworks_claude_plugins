@@ -36,8 +36,20 @@
 - Notion 읽기·쓰기는 사용자가 지정한 페이지에 한한다.
 - 워크스페이스 전체 검색(notion-search)·쿼리(notion-query 계열)는 사용자 인가 없이 실행하지 않는다.
 
+## 보고서 사고 정리 + 공유용 HTML 문서 산출
+
+- 보고서·제안서의 주장 자체를 정의·비판·검증해야 하는 요청("생각부터 정리", "반론
+  찾아줘", "주장 흐름부터")은 report-thinking 스킬이 담당한다. 디자인 없는 low-fi
+  프리뷰까지만 만들고, 확정된 Report Spec을 report-rendering으로 넘긴다.
+- Report Spec 또는 Notion 링크·첨부·대화 내용을 하나의 HTML 문서로 만들어 달라는
+  요청은 report-rendering 스킬이 담당한다("HTML로 만들어줘", "핸드오프 문서", "한
+  장으로 정리", "Spec대로 렌더링해줘").
+- 두 스킬 모두 읽기와 산출만 하고 vault·Notion 어디에도 쓰지 않는다.
+- 산출한 HTML을 보관하려면 obsidian-vault-manager로 넘겨 `assets/`에 원본을 둔다.
+
 ## 공통 원칙
 
 - 저장·기록 요청은 기본적으로 Obsidian vault로(obsidian-vault-manager 스킬).
 - 회의록·팀 공용 문서, "Notion에" 명시 요청만 Notion으로(visuworks-work-manager 스킬).
+- 보고서 주장 정의는 report-thinking, 공유용 HTML 산출은 report-rendering 스킬(둘 다 기록 아님).
 - 같은 내용을 두 저장소에 중복 기록하지 않는다.
