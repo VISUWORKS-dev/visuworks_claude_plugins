@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{문서 제목}}</title>
+<link href="https://cdn.jsdelivr.net/npm/pretendard@latest/dist/web/variable/pretendardvariable-dynamic-subset.min.css" rel="stylesheet">
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="components.css">
+</head>
+<body>
+<nav id="nav">
+  <div class="logo">Visuworks DX</div>
+  <div class="doc-title">{{짧은 문서명}}</div>
+  <!-- section 하나당 a 하나. 주제가 바뀌는 지점에 nav-divider를 넣는다.
+       <div class="nav-divider"></div> -->
+  <a href="#sec-1"><span class="nav-num">01</span> {{섹션1}}</a>
+  <a href="#sec-9"><span class="nav-num">──</span> 용어 사전</a>
+</nav>
+<main>
+<div class="doc-header">
+  <h1>{{문서 제목}}</h1>
+  <div class="meta">
+    <span class="meta-item"><span class="meta-dot"></span> 기준일: {{YYYY-MM-DD}}</span>
+    <span class="meta-item">대상: {{독자}}</span>
+    <span class="meta-item">성격: {{문서 성격}}</span>
+  </div>
+  <div class="notice-box"><strong>{{핵심 고지}}</strong> {{정본 위치·유효 범위}}</div>
+</div>
+
+<section id="sec-1">
+  <h2><span class="sec-num">1</span> {{섹션 제목}} <span class="badge badge-wip" style="font-size:12px;vertical-align:middle">{{상태}}</span></h2>
+  <p class="sec-desc">{{이 섹션이 무엇을 말하는지 한 문장}}</p>
+
+  <!-- card-grid: 병렬 개념 3~6개 -->
+  <div class="card-grid">
+    <div class="card" style="border-top:3px solid var(--accent-blue)"><div class="card-label" style="color:var(--accent-blue)">{{분류}}</div><div class="card-title">{{제목}}</div><div class="card-desc">{{설명}}</div></div>
+    <div class="card" style="border-top:3px solid var(--accent-teal)"><div class="card-label" style="color:var(--accent-teal)">{{분류}}</div><div class="card-title">{{제목}}</div><div class="card-desc">{{설명}}</div></div>
+  </div>
+
+  <!-- kpi-grid: 숫자 지표 3~6개, 강조가 목적 -->
+  <div class="kpi-grid">
+    <div class="kpi-card" style="border-top:3px solid var(--accent-blue)"><div class="kpi-label">{{지표명}}</div><div class="kpi-value">{{값}}<span class="kpi-unit">{{단위}}</span></div><div class="kpi-note">{{증감·비고}}</div></div>
+    <div class="kpi-card" style="border-top:3px solid var(--accent-green)"><div class="kpi-label">{{지표명}}</div><div class="kpi-value">{{값}}<span class="kpi-unit">{{단위}}</span></div><div class="kpi-note">{{증감·비고}}</div></div>
+  </div>
+
+  <h3>{{소제목}}</h3>
+
+  <!-- table -->
+  <div class="table-wrap"><table>
+    <thead><tr><th>{{열1}}</th><th>{{열2}}</th><th>{{열3}}</th></tr></thead>
+    <tbody>
+      <tr><td><strong>{{항목}}</strong></td><td>{{값}}</td><td>{{비고}}</td></tr>
+    </tbody>
+  </table></div>
+
+  <!-- compare: AS-IS → TO-BE -->
+  <div class="compare">
+    <div class="compare-side" style="border-top:3px solid var(--accent-coral)"><div class="compare-label" style="color:var(--accent-coral)">AS-IS</div>
+      <div class="compare-item"><span class="compare-key">{{항목}}</span><span class="compare-val">{{현재}}</span></div>
+    </div>
+    <div class="compare-arrow">→</div>
+    <div class="compare-side" style="border-top:3px solid var(--accent-teal)"><div class="compare-label" style="color:var(--accent-teal)">TO-BE</div>
+      <div class="compare-item"><span class="compare-key">{{항목}}</span><span class="compare-val" style="color:var(--accent-teal)">{{변경}}</span></div>
+    </div>
+  </div>
+
+  <!-- details: 2차 정보 -->
+  <details><summary>{{접힌 제목}}</summary><div class="detail-body">
+    <p><strong>{{요점}}</strong> {{설명}}</p>
+  </div></details>
+
+  <!-- branch-list: 조건 분기, 순서=우선순위 -->
+  <div class="branch-list">
+    <div class="branch-item" style="background:var(--accent-teal-bg)"><span class="branch-num" style="background:var(--accent-teal);color:#fff">1</span><div class="branch-text"><strong>{{조건}}</strong> → {{결과}}</div></div>
+    <div class="branch-item" style="background:var(--accent-coral-bg)"><span class="branch-num" style="background:var(--accent-coral);color:#fff">2</span><div class="branch-text"><strong>{{조건}}</strong> → {{결과}}</div></div>
+  </div>
+
+  <!-- timeline: 날짜순 일정·이력. 세로선+마커 색은 인라인 border-color로 지정 -->
+  <div class="timeline">
+    <div class="timeline-item" style="border-color:var(--accent-green)">
+      <div class="timeline-date">{{YYYY-MM-DD}}</div>
+      <div class="timeline-title">{{항목 제목}} <span class="badge badge-done">확정</span></div>
+      <div class="timeline-desc">{{설명}}</div>
+    </div>
+    <div class="timeline-item" style="border-color:var(--accent-blue)">
+      <div class="timeline-date">{{YYYY-MM ~ YYYY-MM}}</div>
+      <div class="timeline-title">{{항목 제목}} <span class="badge badge-wip">진행</span></div>
+      <div class="timeline-desc">{{설명}}</div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-date">{{미정}}</div>
+      <div class="timeline-title">{{항목 제목}} <span class="badge badge-wait">대기</span></div>
+      <div class="timeline-desc">{{설명}}</div>
+    </div>
+  </div>
+
+  <!-- state-flow: 상태 전이 -->
+  <div class="state-flow">
+    <span class="state-node" style="background:var(--accent-blue-bg);color:var(--accent-blue-text)">{{state1}}</span><span class="state-arrow">→</span>
+    <span class="state-node" style="background:var(--accent-green-bg);color:var(--accent-green-text)">{{state2}}</span>
+    <div class="state-desc"><strong>{{state1}}:</strong> {{설명}}<br><strong>{{state2}}:</strong> {{설명}}</div>
+  </div>
+
+  <!-- field-group: 필드 명세 -->
+  <div class="field-group"><div class="field-group-title">{{엔티티}}</div>
+    <div class="field-item"><span class="field-name">{{field_name}}</span><span class="field-desc">{{무엇인가}}</span><div class="field-why">→ {{왜 필요한가}}</div></div>
+  </div>
+
+  <!-- screen-card: ID 있는 항목 목록 -->
+  <div class="table-wrap">
+    <div class="screen-card"><span class="screen-id">{{ID}}</span><div class="screen-info"><div class="screen-name">{{이름}} <span class="badge badge-done">확정</span></div><div class="screen-desc">{{설명}}</div></div></div>
+  </div>
+
+  <!-- flow-container: 선형 절차 -->
+  <div class="flow-container">
+    <div class="flow-node" style="border-left:3px solid var(--accent-teal)"><div class="flow-title">{{단계}}</div><div class="flow-desc">{{설명}}</div></div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-node" style="border-left:3px solid var(--accent-purple)"><div class="flow-title">{{단계}}</div><div class="flow-desc">{{설명}}</div></div>
+  </div>
+
+  <!-- pc-flow: 담당자·장소가 붙은 단계 -->
+  <div class="pc-flow">
+    <div class="pc-card" style="border:1px solid var(--accent-teal);border-left:4px solid var(--accent-teal)"><div class="pc-icon" style="background:var(--accent-teal-bg);color:var(--accent-teal-text)">1</div><div class="pc-body"><div class="pc-title">{{단계명}}</div><div class="pc-desc">{{설명}}</div><div class="pc-record">→ {{부가 기록}}</div></div></div>
+    <div class="pc-connector">↓</div>
+    <div class="pc-card"><div class="pc-icon" style="background:var(--accent-gray-bg);color:var(--accent-gray-text)">2</div><div class="pc-body"><div class="pc-title">{{단계명}}</div><div class="pc-desc">{{설명}}</div></div></div>
+  </div>
+
+  <!-- priority-grid: 2분류 -->
+  <div class="priority-grid">
+    <div class="priority-col"><div class="priority-header" style="background:var(--accent-teal-bg);color:var(--accent-teal-text)">{{분류A}}</div>
+      <div class="priority-item"><div class="pi-title">{{항목}}</div><div class="pi-desc">{{설명}}</div></div>
+    </div>
+    <div class="priority-col"><div class="priority-header" style="background:var(--accent-amber-bg);color:var(--accent-amber-text)">{{분류B}}</div>
+      <div class="priority-item"><div class="pi-title">{{항목}}</div><div class="pi-desc"><span class="badge badge-block">{{블로커}}</span></div></div>
+    </div>
+  </div>
+
+  <!-- tabs: 대안 뷰 -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="showFlowTab('tab-a',this)">{{탭A}}</button>
+    <button class="tab-btn" onclick="showFlowTab('tab-b',this)">{{탭B}}</button>
+  </div>
+  <div id="tab-a" class="tab-panel active"><div class="code-block">{{내용}}</div></div>
+  <div id="tab-b" class="tab-panel"><div class="code-block">{{내용}}</div></div>
+
+  <!-- diagram-wrap + SVG: 계층 구조 (SVG는 hex 하드코딩 허용, 토큰과 동일 값만) -->
+  <div class="diagram-wrap"><svg width="100%" viewBox="0 0 680 190" style="display:block">
+    <defs><marker id="a1" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#9C9B96" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+    <rect x="20" y="8" width="640" height="62" rx="10" fill="#EFF6FF" stroke="#BFDBFE" stroke-width="1"/>
+    <text x="40" y="34" font-size="14" font-weight="600" fill="#1E40AF">{{Layer 1}}</text>
+    <text x="40" y="54" font-size="12" fill="#3B82F6">{{설명}}</text>
+    <line x1="340" y1="70" x2="340" y2="94" stroke="#9C9B96" stroke-width="1.5" marker-end="url(#a1)"/><text x="354" y="86" font-size="11" fill="#9C9B96">{{관계}}</text>
+    <rect x="20" y="98" width="640" height="62" rx="10" fill="#F0FDFA" stroke="#99F6E4" stroke-width="1"/>
+    <text x="40" y="124" font-size="14" font-weight="600" fill="#115E59">{{Layer 2}}</text>
+    <text x="40" y="144" font-size="12" fill="#0D9488">{{설명}}</text>
+  </svg></div>
+
+  <!-- code-block: 트리·스키마 -->
+  <div class="code-block">{{트리 또는 스키마}}</div>
+
+  <div class="notice-box"><strong>{{핵심 제약}}</strong> {{설명}}</div>
+</section>
+
+<section id="sec-9">
+  <h2><span class="sec-num" style="background:var(--text-secondary)">—</span> 용어 사전</h2>
+  <div class="table-wrap"><table>
+    <thead><tr><th style="width:180px">용어</th><th>정의</th></tr></thead>
+    <tbody>
+      <tr><td><strong>{{용어}}</strong></td><td>{{정의}}</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<div style="text-align:center;padding:40px 0 20px;font-size:12px;color:var(--text-tertiary)">{{문서명}} · {{기준일}} · Visuworks DX Team</div>
+</main>
+<script>
+function showFlowTab(id,btn){btn.closest('section').querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));btn.closest('section').querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));document.getElementById(id).classList.add('active');btn.classList.add('active')}
+const sections=document.querySelectorAll('section[id]'),navLinks=document.querySelectorAll('nav a');
+const observer=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){navLinks.forEach(l=>l.classList.remove('active'));const a=document.querySelector(`nav a[href="#${e.target.id}"]`);if(a)a.classList.add('active')}})},{rootMargin:'-20% 0px -70% 0px'});
+sections.forEach(s=>observer.observe(s));
+</script>
+</body>
+</html>

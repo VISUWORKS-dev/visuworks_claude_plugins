@@ -8,6 +8,11 @@
 - **Obsidian (정본)**: 규칙·상태·지식·이력의 모든 기록 → `obsidian-vault-manager` 스킬
 - **Notion (보조)**: 회의록·팀 공용 문서 작성만 → `visuworks-work-manager` 스킬
   (Notion에는 claude.md/context.md/knowledge/history 레이어가 없다)
+- **보고서 사고 정리**: 주장 Frame → AI 비판(Challenge) → 논증 흐름 승인(Shape) →
+  근거/반론/대안(Enrich) → Report Spec 확정 → `report-thinking` 스킬
+  (디자인 없는 low-fi 프리뷰까지만 만들고 최종 HTML은 만들지 않는다)
+- **HTML 산출 (읽기 전용)**: Report Spec 또는 원자료 → 공유용 단일 HTML 문서 →
+  `report-rendering` 스킬 (어디에도 기록하지 않는다. 문서를 만들어 전달만 한다)
 
 ## 구성
 - `skills/obsidian-vault-manager/SKILL.md` — Obsidian vault 관리 스킬 (정본)
@@ -21,6 +26,27 @@
   - Obsidian 네이티브: YAML frontmatter, [[위키링크]](비마크다운은 확장자 포함), 태그
   - 로컬은 바로 쓰기(사후 요약 보고), claude.md만 사전 승인
 - `skills/visuworks-work-manager/SKILL.md` — Notion 쓰기 스킬 (회의록·공용 문서 한정)
+- `skills/report-thinking/SKILL.md` — 보고서 주장을 정의·비판·검증해 Report Spec으로
+  굳히는 스킬 (디자인 없음)
+  - 절차(5단계): Frame(사용자 입장 먼저) → Challenge(AI가 비약·반론·대안 지적) →
+    Shape(논증 흐름 승인, 목차 아님) → Enrich(주장마다 근거/반론/대안/리스크) →
+    Spec(섹션별 Purpose/Message/Evidence/Visual/Decision 확정)
+  - 산출: 흰 배경·검은 글씨·장식 없는 low-fi HTML 프리뷰 (heading/paragraph/table/
+    simple diagram만) — 사고 확인용이지 최종 문서가 아님
+  - 승인된 Report Spec을 `report-rendering`으로 넘김. vault·Notion에 쓰지 않는다
+- `skills/report-rendering/SKILL.md` — Report Spec 또는 원자료 → 단일 HTML 문서 산출 스킬
+  - 입력: `report-thinking`이 넘긴 Report Spec, 또는 사용자가 준 Notion URL
+    (`notion-fetch`만)·첨부 파일·대화 내용·vault 문서
+  - 출력: CSS·JS 전부 인라인된 단일 `.html` 1개 (외부 의존은 Pretendard CDN 하나)
+  - 디자인 시스템 고정: `:root` 토큰 수정 금지, 액센트 7색 의미 규약(blue=현재 /
+    teal=TO-BE / amber=미결 / coral=블로커 / purple=데이터·별도경로 / green=완료 /
+    gray=중립), 한 문서 최대 5색, 다크 모드 미지원
+  - 컴포넌트 21종 폐쇄 목록 (card-grid, kpi-grid, compare, flow, pc-flow, branch-list,
+    state-flow, SVG diagram, tabs, timeline, table, screen-card, field-group,
+    priority-grid, code-block, badge 6종, notice-box, details 등) — 목록 밖 신설 금지
+  - 절차: 수집 → 구조화 → **목차 승인 게이트** → 조립 → 검증 → 전달
+  - 파일명: `{프로젝트}_{문서명}_{버전}_{YYYYMMDD}.html`
+  - vault·Notion에 쓰지 않는다 (기록 요청은 obsidian-vault-manager로 넘김)
 - `hooks/hooks.json` + `scripts/gate-notion-search.sh` — 워크스페이스 검색·쿼리 → 사용자 인가(ask) 게이트 (Cowork 전용)
 - `CLAUDE.md` — 각자 Cowork 프로젝트 루트에 복사해 두는 "항상 로드" 읽기 절차 템플릿
 
