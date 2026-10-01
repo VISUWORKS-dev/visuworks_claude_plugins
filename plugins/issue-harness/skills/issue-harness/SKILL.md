@@ -14,7 +14,7 @@ description: "이슈 하나를 계획 → 계약 확정 → 테스트 목록 TDD
 cat .claude/harness.config.json
 ```
 
-없으면 멈추고 `/harness:init`을 안내한다. 이후 이 문서의 `<키>`는 그 파일의 값이다.
+없으면 멈추고 `/issue-harness:init`을 안내한다. 이후 이 문서의 `<키>`는 그 파일의 값이다.
 
 | 키 | 쓰는 곳 |
 |---|---|
@@ -41,10 +41,10 @@ cat .claude/harness.config.json
 
 | 에이전트 | subagent_type | 역할 | 참조 스킬 |
 |---|---|---|---|
-| `issue-planner` | `harness:issue-planner` | 이슈 → spec 문서 | `harness:issue-workflow`, `harness:scope-guard` |
-| `contract-guardian` | `harness:contract-guardian` | 경계면 계약 소유 | `<contract_skill>` |
-| `implementer` | `harness:implementer` | 구현·커밋 | `<contract_skill>`, `harness:tdd-cycle`, `harness:scope-guard` |
-| `integration-qa` | `harness:integration-qa` | 경계면 검증 | `<contract_skill>`, `harness:verification-protocol` |
+| `issue-planner` | `issue-harness:issue-planner` | 이슈 → spec 문서 | `issue-harness:issue-workflow`, `issue-harness:scope-guard` |
+| `contract-guardian` | `issue-harness:contract-guardian` | 경계면 계약 소유 | `<contract_skill>` |
+| `implementer` | `issue-harness:implementer` | 구현·커밋 | `<contract_skill>`, `issue-harness:tdd-cycle`, `issue-harness:scope-guard` |
+| `integration-qa` | `issue-harness:integration-qa` | 경계면 검증 | `<contract_skill>`, `issue-harness:verification-protocol` |
 | `<domain_agents[].name>` | 그 이름 그대로 | 도메인 판단 (`decides`) | 프로젝트 정의 |
 
 **`name`은 의미가 있다 — 아무 호출에나 주지 않는다.** agent teams가 켜진 대화형 세션에서
@@ -52,8 +52,8 @@ cat .claude/harness.config.json
 
 | 호출 | `name` | 무엇이 되나 | 훅이 기록하는 `agent` |
 |---|---|---|---|
-| 계획(`2a`), 최종 검증(`4a`·`4b`) | **주지 않는다** | 서브에이전트 — 팀에서 분리돼야 한다 | `harness:<역할>` |
-| 구현(`3b`) | `impl-<N>` + `isolation: "worktree"` | 서브에이전트 (`SendMessage`로 이어감) | `harness:implementer` |
+| 계획(`2a`), 최종 검증(`4a`·`4b`) | **주지 않는다** | 서브에이전트 — 팀에서 분리돼야 한다 | `issue-harness:<역할>` |
+| 구현(`3b`) | `impl-<N>` + `isolation: "worktree"` | 서브에이전트 (`SendMessage`로 이어감) | `issue-harness:implementer` |
 | Phase 3 팀원 | `contract`·`domain`·`qa` 등 | 팀원 | 팀원 이름 |
 
 `state.json`의 `agents` 키는 접두사 없는 역할 이름(`implementer`)으로 쓴다.
@@ -77,7 +77,7 @@ cat .claude/harness.config.json
 ## 상태 정본 — state.json + events.jsonl
 
 **상태는 `state.json`, 경과는 `events.jsonl`을 읽는다.** 스키마와 갱신 규약은
-**`harness:harness-state`** 스킬에 있다.
+**`issue-harness:harness-state`** 스킬에 있다.
 
 ```
 .harness/
@@ -130,7 +130,7 @@ python3 "${CLAUDE_PLUGIN_ROOT}/scripts/check-state.py"
 
 `4a`(무컨텍스트) → `4b`(컨텍스트) 순서를 **뒤집지 않는다.** 명세를 먼저 읽으면 코드를
 그 명세대로 보게 되는 확증편향이 생기고, 그러면 두 번 볼 이유가 없어진다.
-상세: `harness:verification-protocol`.
+상세: `issue-harness:verification-protocol`.
 
 ## 다음 에이전트 호출 판단 — 훅이 아니라 오케스트레이터가 한다
 
@@ -143,7 +143,7 @@ python3 "${CLAUDE_PLUGIN_ROOT}/scripts/check-state.py"
 
 ### 전이 판정 순서
 
-**정본은 `harness:harness-state` 「전이 규칙」이다.** 에이전트가 끝날 때마다 1번부터 순서대로
+**정본은 `issue-harness:harness-state` 「전이 규칙」이다.** 에이전트가 끝날 때마다 1번부터 순서대로
 적용하고 먼저 걸리는 것에서 멈춘다. 여기에 규칙을 다시 적지 않는다 — 두 곳에 두면 갈라진다.
 
 ## 워크플로우
@@ -189,7 +189,7 @@ tail -20 .harness/issue-<N>/events.jsonl # 0b: 무슨 일이 있었는가 (경�
    선행 계약이 미확정이면 사용자에게 알리고 진행 여부를 확인한다. 추측으로 진행하면 재작업이다.
 4. 이슈 브랜치 확인·생성 (`branch_pattern`).
 5. `_workspace/` 생성 (중간 산출물 보관. 갱신 실행이면 기존 것을 `_workspace_<타임스탬프>/`로 이동).
-6. **`state.json` 초기화** — `harness:harness-state`의 초기화 블록을 따른다. `ACTIVE`를 이 이슈로 쓴다.
+6. **`state.json` 초기화** — `issue-harness:harness-state`의 초기화 블록을 따른다. `ACTIVE`를 이 이슈로 쓴다.
    이후 모든 단계 전이에서 `phase`·`sub_stage`·`updated_at`을 갱신한다.
 
 ### Phase 2: 계획
@@ -198,11 +198,11 @@ tail -20 .harness/issue-<N>/events.jsonl # 0b: 무슨 일이 있었는가 (경�
 
 ```
 Agent(
-  subagent_type: "harness:issue-planner",
+  subagent_type: "issue-harness:issue-planner",
   model: <model>,
   prompt: "이슈 #<N>의 작업 계획을 작성한다. <이슈 본문>.
            계약 정본: <contract_skill 또는 '없음 — spec에 계약 절을 쓴다'>.
-           범위 판정: harness:scope-guard (+ 프로젝트 사례: <domain_skills.scope>).
+           범위 판정: issue-harness:scope-guard (+ 프로젝트 사례: <domain_skills.scope>).
            마감: <있으면 날짜>.
            **<spec_dir>/issue-<N>.md 에 본문을 직접 써라** (Write 툴). 그 파일 하나만
            쓴다 — 제품 코드·테스트·.harness/ 는 건드리지 않는다.
@@ -228,14 +228,14 @@ Agent(
 
 **같은 게이트에서 테스트 목록 승인도 받는다.** spec 문서의 `## 테스트 목록`을 사람에게
 보여주고 승인받는다. 구현자는 이 목록 안에서만 움직이고 기대값을 바꿀 수 없으므로
-(`harness:tdd-cycle`), 승인 없이 구현에 들어가면 **사람이 확정하지 않은 기대값이 정본이 된다.**
+(`issue-harness:tdd-cycle`), 승인 없이 구현에 들어가면 **사람이 확정하지 않은 기대값이 정본이 된다.**
 항목이 틀렸거나 빠졌다는 지적을 받으면 `issue-planner`에게 되돌린다.
 
 ### Phase 3: 구현
 
 **실행 모드: 에이전트 팀**
 
-**`2c-handoff-commit`** — spec만 `[handoff]` 커밋 (`harness:issue-workflow` 3절).
+**`2c-handoff-commit`** — spec만 `[handoff]` 커밋 (`issue-harness:issue-workflow` 3절).
 
 ```bash
 git add <spec_dir>/issue-<N>.md
@@ -247,7 +247,7 @@ git commit -m "[handoff] 이슈 #<N> spec — 테스트 목록 <n>항목"
 | 무엇 | 어떻게 |
 |---|---|
 | spec·계약 테스트 | tracked — 핸드오프 커밋으로. 워크트리는 primary의 **현재 HEAD**에서 갈라진다 |
-| 구현자의 역할·규칙·보고 형식 | `subagent_type: "harness:implementer"`로 적용 |
+| 구현자의 역할·규칙·보고 형식 | `subagent_type: "issue-harness:implementer"`로 적용 |
 | 이번 단위에만 해당하는 정보 + 프로젝트 값 | 오케스트레이터가 프롬프트에 담는다 (아래 템플릿) |
 
 `.harness/`(런타임 상태)는 gitignore라 따라오지 않는다. 구현자는 상태 파일을 읽지도
@@ -260,9 +260,9 @@ git commit -m "[handoff] 이슈 #<N> spec — 테스트 목록 <n>항목"
 실패 테스트를 먼저 쓴다. 스키마 필드·빈 결과·None·상태값·경로 같은 **형태**만 건다.
 비결정적 출력의 내용(생성된 문안의 품질 등)은 assert하지 않는다.
 QA가 쓰는 이유는 구현자가 쓰면 자기 설계에 맞춘 테스트가 되기 때문이다.
-반드시 `contract_test_cmd`로 실패를 확인하고 `3b`로 넘긴다. 상세: `harness:verification-protocol`.
+반드시 `contract_test_cmd`로 실패를 확인하고 `3b`로 넘긴다. 상세: `issue-harness:verification-protocol`.
 
-`3a`가 끝나기 전에 `3b`를 시작하지 않는다 (`harness:harness-state` 전이 규칙 4번).
+`3a`가 끝나기 전에 `3b`를 시작하지 않는다 (`issue-harness:harness-state` 전이 규칙 4번).
 
 **`3b` 프롬프트를 조립하는 것이 오케스트레이터의 일이다.** 구현자는 워크트리에 있어
 `.harness/`를 못 본다.
@@ -276,7 +276,7 @@ Kent Beck의 Augmented Coding에서 사람이 테스트마다 "go"를 말하는 
 ```
 ① 첫 묶음 — 워크트리 생성과 기동이 한 번에 된다
 Agent(
-  subagent_type: "harness:implementer",
+  subagent_type: "issue-harness:implementer",
   isolation: "worktree",
   name: "impl-<N>",
   run_in_background: true,
@@ -289,7 +289,7 @@ Agent(
    - 보고·커밋을 state.json에 옮긴다 (agents.implementer: name·worktree·branch·status)
    - git -C <워크트리> log --oneline <이전>..HEAD 로 커밋 확인
    - 3c: integration-qa에게 <워크트리 경로>와 이 묶음의 경계면을 주고 검증시킨다
-   - harness:harness-state 전이 규칙 1번부터 적용
+   - issue-harness:harness-state 전이 규칙 1번부터 적용
 
 ③ 다음 묶음 — 같은 워크트리·같은 맥락에서 이어진다
 SendMessage(to: "impl-<N>", message: <템플릿 — 다음 묶음, 3c 지적은 [이전 실패 원인]>)
@@ -341,9 +341,9 @@ spec도 계약 테스트도 없는 워크트리가 된다.
    그대로 쓸 수 있다:
 
    ```
-   Agent(subagent_type: "harness:contract-guardian", name: "contract", model: <model>, prompt: "...")
+   Agent(subagent_type: "issue-harness:contract-guardian", name: "contract", model: <model>, prompt: "...")
    Agent(subagent_type: "<domain_agents[0].name>",   name: "domain",   model: <model>, prompt: "...")
-   Agent(subagent_type: "harness:integration-qa",    name: "qa",       model: <model>, prompt: "...")
+   Agent(subagent_type: "issue-harness:integration-qa",    name: "qa",       model: <model>, prompt: "...")
    ```
 
    agent teams가 꺼져 있거나 비대화형(`-p`) 세션이면 같은 호출이 서브에이전트로 돈다 —
@@ -390,7 +390,7 @@ spec도 계약 테스트도 없는 워크트리가 된다.
 2. **`4a-verify-blind` — 무컨텍스트 검증.** 명세를 주지 않는다.
    ```
    Agent(
-     subagent_type: "harness:integration-qa",
+     subagent_type: "issue-harness:integration-qa",
      model: <model>,
      prompt: "이슈 #<N> '<제목>' 구현의 실제 동작을 기록한다.
               너는 명세·계약 문서·작업 계획을 받지 못한다. 요청하지도 마라.
@@ -406,7 +406,7 @@ spec도 계약 테스트도 없는 워크트리가 된다.
 3. **`4b-verify-spec` — 컨텍스트 검증.** **다른 인스턴스**로 호출한다.
    ```
    Agent(
-     subagent_type: "harness:integration-qa",
+     subagent_type: "issue-harness:integration-qa",
      model: <model>,
      prompt: "_workspace/verify_<N>_blind.md를 읽는다. 명세를 모르는 검증자가 기록한
               코드의 실제 동작이다. 이제 <contract_skill>, spec 문서, 이슈 #<N>을 읽고
@@ -425,7 +425,7 @@ spec도 계약 테스트도 없는 워크트리가 된다.
    `pass`만 있는 함수, `TODO` 미구현 분기를 찾는다. 있으면 완료가 아니다. 구현하거나 블로커로 보고한다.
 
 6. **`4e-merge`** — 오케스트레이터가 로컬 머지하고 primary에서 `check_cmd`.
-   머지 조건·이유·"머지 전 계약 테스트 실패는 정상"은 **`harness:issue-workflow` 8절이 정본이다.**
+   머지 조건·이유·"머지 전 계약 테스트 실패는 정상"은 **`issue-harness:issue-workflow` 8절이 정본이다.**
    ```bash
    git switch <이슈브랜치>
    git merge --no-ff <워크트리브랜치> -m "[chore] 워크트리 브랜치를 이슈 브랜치에 반영한다 (#<N>)"
@@ -449,7 +449,7 @@ spec도 계약 테스트도 없는 워크트리가 된다.
      gh pr create --base <기본 브랜치> --title "..." --body-file <경로>
    ```
 
-   **워크트리 브랜치는 origin에 올리지 않는다** (`harness:issue-workflow` 8절).
+   **워크트리 브랜치는 origin에 올리지 않는다** (`issue-harness:issue-workflow` 8절).
 
 3. 피드백 요청 — "결과나 팀 구성에서 바꾸고 싶은 점이 있나요?" 강요하지 않되 기회를 준다.
 
@@ -475,7 +475,7 @@ integration-qa → 최종 검증 보고 + check_cmd
 
 | 상황 | 전략 |
 |---|---|
-| `.claude/harness.config.json` 없음 | 멈추고 `/harness:init`을 안내 |
+| `.claude/harness.config.json` 없음 | 멈추고 `/issue-harness:init`을 안내 |
 | 팀원 1명 실패 | 1회 재시작. 재실패 시 그 작업을 남은 팀원에게 재할당하고 보고서에 누락 명시 |
 | 팀원 과반 실패 | 중단하고 사용자에게 진행 여부 확인 |
 | `check_cmd` 실패 | 통과할 때까지 고친다. 테스트를 지우거나 skip해서 통과시키지 않는다 |

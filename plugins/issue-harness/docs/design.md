@@ -1,4 +1,4 @@
-# harness 플러그인 설계
+# issue-harness 플러그인 설계
 
 이슈 = 워크트리 = PR 단위로 **계획 → 계약 확정 → 구현(TDD) → 2단계 검증**을 태우는
 멀티 에이전트 하네스를 플러그인으로 분리한다. 원본은 한 프로젝트의 `.claude/`에
@@ -23,14 +23,14 @@
 | 플러그인 `settings.json`은 `agent`·`subagentStatusLine`만 반영 | **맞음** | plugins/manifest-reference: "Only `agent` and `subagentStatusLine` take effect; other keys are dropped at load." |
 | 플러그인은 `.claude/rules/`·루트 `CLAUDE.md`를 로드하지 않음 | **맞음** | plugins/components: "A CLAUDE.md at the plugin root isn't loaded as context" — `claude plugin validate`도 경고한다 |
 | 훅은 `hooks/hooks.json`, `${CLAUDE_PLUGIN_ROOT}`, 켜진 모든 세션에서 발화 | **맞음**. 프로젝트 단위로 좁히는 방법은 문서에 없다 — `matcher`뿐 | plugins/components 「Hooks」 |
-| 이름은 `harness:<name>`, 에이전트의 `permissionMode`·`hooks`·`mcpServers` 무시 | **맞음 + 하나 더**: `initialPrompt`도 무시. `model`·`isolation: worktree`는 지원 | plugins/components 「Agents」 |
+| 이름은 `issue-harness:<name>`, 에이전트의 `permissionMode`·`hooks`·`mcpServers` 무시 | **맞음 + 하나 더**: `initialPrompt`도 무시. `model`·`isolation: worktree`는 지원 | plugins/components 「Agents」 |
 | 프로젝트 활성화는 `extraKnownMarketplaces` + `enabledPlugins` | **맞음**. 단 **워크스페이스 신뢰(trust) 후에만** 적용되고, 신뢰 전·`-p` 실행에서는 경고 없이 무시된다 | settings-reference 「extraKnownMarketplaces」 |
 
 **전제와 다른 점 — 설계에 반영한다:**
 
 1. **`commands/`는 레거시다.** "Commands are the older format, and skills supersede them for new
-   work." → `/harness:init`은 `commands/init.md`가 아니라 `skills/init/SKILL.md` +
-   `disable-model-invocation: true`로 만든다. 호출 이름은 `/harness:init` 그대로다.
+   work." → `/issue-harness:init`은 `commands/init.md`가 아니라 `skills/init/SKILL.md` +
+   `disable-model-invocation: true`로 만든다. 호출 이름은 `/issue-harness:init` 그대로다.
 2. **플러그인 스킬 본문에서 `${CLAUDE_PLUGIN_ROOT}`·`${CLAUDE_SKILL_DIR}`가 치환된다**
    (skills 「Available string substitutions」). → 스크립트를 플러그인에 두고 스킬이
    `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/check-state.py"`로 부를 수 있다. Makefile이 필요 없다.
@@ -43,11 +43,11 @@
    실측하고, 안 되면 팀 대신 서브에이전트로 부르는 경로를 쓴다.
 5. **`SubagentStop`의 `agent_type`**: 문서상 "agent name"이고, 내부 에이전트(프롬프트 제안 등)는
    빈 문자열로 온다. 원본 실측과 같다 — 이름으로 호출하면 이름이 온다. 플러그인 에이전트를
-   타입으로 부를 때 `harness:<name>`이 오는지는 단계 4 (b)에서 실측한다.
+   타입으로 부를 때 `issue-harness:<name>`이 오는지는 단계 4 (b)에서 실측한다.
 
 ## 1. 분류
 
-판정: **코어** → 플러그인 / **설정** → `/harness:init`이 프로젝트에 깔아줌 / **도메인** → 프로젝트에 남김.
+판정: **코어** → 플러그인 / **설정** → `/issue-harness:init`이 프로젝트에 깔아줌 / **도메인** → 프로젝트에 남김.
 
 ### 1.1 `.claude/skills/`
 
@@ -147,7 +147,7 @@ git hook·check-state(스크립트)가 같은 값을 읽어야 하고, 둘 다 �
   설정을 찾으러 다니지 않는다). 단 에이전트 본문에도 "없으면 `.claude/harness.config.json`을 읽는다"를 둔다.
 - **스크립트:** `pre-commit`·`commit-msg`는 `tests_dir`만, `check-state.py`는 `spec_dir`를 쓰지 않는다
   (state.json의 `spec` 경로를 그대로 검사).
-- **파일이 없으면:** 오케스트레이터는 멈추고 `/harness:init`을 안내한다. git hook은 기본값(`tests/`)으로 돈다 —
+- **파일이 없으면:** 오케스트레이터는 멈추고 `/issue-harness:init`을 안내한다. git hook은 기본값(`tests/`)으로 돈다 —
   설정 누락이 검사를 끄면 안 된다.
 - **`model`은 frontmatter가 아니라 호출 파라미터로 준다.** 플러그인 에이전트 frontmatter는 `model: inherit`.
   원본은 "모든 Agent 호출에 `model: "opus"`를 명시한다"였으므로 같은 동작이다.
@@ -161,7 +161,7 @@ git hook·check-state(스크립트)가 같은 값을 읽어야 하고, 둘 다 �
 | `pipeline-engineer` | **`implementer`** | 변경 — "pipeline"은 원본 도메인(데이터 파이프라인)에 묶인 말이다. 원본 spec 템플릿 주석이 이미 "implementer"라고 쓴다 |
 | `integration-qa` | `integration-qa` | 유지 — 경계면 교차 비교라는 역할이 범용 |
 
-호출 형태는 `Agent(subagent_type: "harness:implementer", name: "implementer-<N>", ...)`.
+호출 형태는 `Agent(subagent_type: "issue-harness:implementer", name: "implementer-<N>", ...)`.
 
 ### 기존 `.harness/` 기록과의 호환
 
@@ -170,8 +170,8 @@ git hook·check-state(스크립트)가 같은 값을 읽어야 하고, 둘 다 �
   키에는 접두사 없이 쓴다(`agents.implementer`) — `:`는 사람이 jq로 읽을 때 걸린다.
 - **`events.jsonl`의 `agent` 값:** 이미 자유 문자열이다. 원본 기록을 집계하면 타입명보다
   호출 이름(`planner16`, `qa16-blind` 등)이 많다. 이름이 바뀌어도 깨지는 소비자가 없다.
-- **오케스트레이터는 항상 `name`을 준다** — 그러면 `agent`에 `harness:` 접두사가 붙든 말든
-  기록이 호출 이름으로 고정된다. 타입명으로 기록되는 경우(이름 없이 호출)는 `harness:<name>`이
+- **오케스트레이터는 항상 `name`을 준다** — 그러면 `agent`에 `issue-harness:` 접두사가 붙든 말든
+  기록이 호출 이름으로 고정된다. 타입명으로 기록되는 경우(이름 없이 호출)는 `issue-harness:<name>`이
   올 것으로 예상하며 단계 4 (b)에서 실측한다.
 - **원본의 활성 이슈가 진행 중이면** 전환 시점에 그 이슈의 `agents` 키를 손으로 바꿀 필요는 없다 —
   오케스트레이터가 새 이름으로 새 키를 쓰고 옛 키는 기록으로 남는다. 섞이는 것이 싫으면 전환 전에
@@ -236,7 +236,7 @@ ask가 뜨는 것은 하네스와 무관하게 원래 동작이다. OMC 등 다�
 플러그인 훅이 아니라 git 훅이다. 4.3과 같은 문제가 없다 — 프로젝트가 `core.hooksPath`로 켤 때만 돈다.
 `_harness.record()`는 이미 `ACTIVE`가 없으면 기록만 생략한다(검사는 그대로).
 
-## 5. `/harness:init` 명세
+## 5. `/issue-harness:init` 명세
 
 `skills/init/SKILL.md` (`disable-model-invocation: true`) + `scripts/init.py`.
 스킬은 `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/init.py"`를 돌리고 결과를 사람에게 보여준다.
@@ -287,7 +287,7 @@ init은 만들지 않는다(경로가 버전마다 바뀐다).
 
 | 항목 | 바꿀 값 |
 |---|---|
-| A1 `subagent_type` | `"harness:<name>"` (코어) / `domain_agents[].name` (도메인) |
+| A1 `subagent_type` | `"issue-harness:<name>"` (코어) / `domain_agents[].name` (도메인) |
 | A2 `TeamCreate` `agent_type` | 같음. 플러그인 타입이 팀에서 안 되면 서브에이전트 호출로 대체 (0절 4) |
 | A3 `model: "opus"` | `harness.config.json`의 `model`. 에이전트 frontmatter는 `inherit` |
 | A4 `make check` | `check_cmd` |
@@ -426,13 +426,13 @@ init은 만들지 않는다(경로가 버전마다 바뀐다).
 | | B6 | 98 |
 | `.githooks/pre-commit` | B1 | 15 (원본 테스트 파일명) |
 
-단계 2 끝에 `plugins/harness/` 전체를 원본 고유명·마켓플레이스 소유자명·절대경로 접두사·이슈 번호
+단계 2 끝에 `plugins/issue-harness/` 전체를 원본 고유명·마켓플레이스 소유자명·절대경로 접두사·이슈 번호
 표기로 grep하고, 0건이 아닌 행은 남는 이유를 적는다. 단어 목록은 이 문서에 적지 않는다 — 적으면 이 문서가 걸린다.
 
 ## 8. 플러그인 구성 (단계 2 목표)
 
 ```
-plugins/harness/
+plugins/issue-harness/
 ├── .claude-plugin/plugin.json      # name: harness, version: 0.1.0
 ├── README.md                       # 설치·활성화·harness.config.json 형식·check-state 수동 실행
 ├── docs/design.md                  # 이 문서
@@ -448,7 +448,7 @@ plugins/harness/
 │   ├── tdd-cycle/SKILL.md
 │   ├── scope-guard/SKILL.md
 │   ├── issue-workflow/SKILL.md
-│   └── init/SKILL.md               # /harness:init (disable-model-invocation)
+│   └── init/SKILL.md               # /issue-harness:init (disable-model-invocation)
 ├── agents/
 │   ├── issue-planner.md
 │   ├── contract-guardian.md
@@ -463,7 +463,7 @@ plugins/harness/
 
 스킬 이름이 원본 프로젝트의 남는 도메인 스킬과 겹치지 않는지: 원본에 남는 것은 C·D·축소된
 scope/workflow 보충 스킬이다. 원본의 `issue-workflow`·`poc-scope-guard`를 같은 이름으로 남기면
-`issue-workflow`(프로젝트)와 `harness:issue-workflow`(플러그인)가 공존한다 — 이름은 접두사로
+`issue-workflow`(프로젝트)와 `issue-harness:issue-workflow`(플러그인)가 공존한다 — 이름은 접두사로
 구별되지만 모델이 둘 다 트리거할 수 있다. 원본에 남길 도메인 보충은 다른 이름으로 바꾸는 안을
 제안한다 → Q1.
 
@@ -478,11 +478,11 @@ scope/workflow 보충 스킬이다. 원본의 `issue-workflow`·`poc-scope-guard
 | Q5 구조도 HTML | 원본에서 지우고 플러그인 README·이 문서로 대체 |
 | Q6 `defaultEnabled` | 넣지 않는다 — 훅은 하네스 밖에서 즉시 빠지므로 프로젝트 한정이 필요 없다 |
 
-### 남은 위험 — 같은 이름의 다른 플러그인
+### 이름 — `harness` → `issue-harness`
 
-다른 마켓플레이스에 `harness`라는 이름의 플러그인이 있고 함께 설치될 수 있다. 두 플러그인이
-모두 켜지면 `harness:` 접두사를 공유한다. 스킬·에이전트 이름이 겹치지 않으면 공존할 수도 있지만
-문서에 규칙이 없다 — 실측으로 확인한다.
+처음 이름은 `harness`였다. 다른 마켓플레이스에 같은 이름의 `harness` 플러그인이 있고 함께 설치될 수 있어,
+두 플러그인이 `harness:` 접두사를 공유하는 충돌을 피하려고 `issue-harness`로 바꿨다. 스킬·에이전트 이름은
+그대로이고 접두사만 바뀐다(`issue-harness:issue-harness`, `/issue-harness:init`). 이 문서 앞 절의 접두사도 새 이름으로 고쳤다.
 
 ## 10. 실측 결과 (Claude Code v2.1.285)
 
@@ -490,12 +490,12 @@ scope/workflow 보충 스킬이다. 원본의 `issue-workflow`·`poc-scope-guard
 
 | 항목 | 결과 |
 |---|---|
-| 이름 공간 | 에이전트 4개·스킬 7개가 `harness:` 접두사로 보이고 `/harness:init`이 슬래시 명령으로 뜬다 |
-| 서브에이전트 1회 → `events.jsonl` | 정확히 1줄. `agent`는 타입(`harness:issue-planner`) |
+| 이름 공간 | 에이전트 4개·스킬 7개가 `issue-harness:` 접두사로 보이고 `/issue-harness:init`이 슬래시 명령으로 뜬다 |
+| 서브에이전트 1회 → `events.jsonl` | 정확히 1줄. `agent`는 타입(`issue-harness:issue-planner`) |
 | `isolation: worktree` + `name` | 서브에이전트로 남는다. 워크트리는 primary의 현재 HEAD에서 갈라지고, `SendMessage`로 이어간 작업이 같은 워크트리에서 진행된다. 멈출 때마다 1줄, `agent`는 타입 |
-| 팀원 (`name`을 준 `Agent`, 대화형·agent teams 켜짐) | 플러그인 타입을 그대로 쓸 수 있다. 팀 config의 멤버 `agentType`이 `harness:integration-qa`. 기록 1줄, `agent`는 **이름**. `msg`는 팀원의 마지막 텍스트라 보고 본문이 아닐 수 있다 |
+| 팀원 (`name`을 준 `Agent`, 대화형·agent teams 켜짐) | 플러그인 타입을 그대로 쓸 수 있다. 팀 config의 멤버 `agentType`이 `issue-harness:integration-qa`. 기록 1줄, `agent`는 **이름**. `msg`는 팀원의 마지막 텍스트라 보고 본문이 아닐 수 있다 |
 | `TeamCreate` | **도구가 없다.** 팀원은 `name`을 준 `Agent` 호출로 생긴다(agent-teams 문서). 6절 A2는 이 방식으로 바꿨다 |
 | `name`의 부작용 | 대화형 세션에서 계획·최종 검증 호출에 `name`을 주면 팀원이 된다 → 그 호출에는 `name`을 주지 않는다 |
 | 하네스 밖 | 비-git 디렉터리·`.harness` 없는 레포에서 `SubagentStop` 훅이 발화하고(디버그 로그) 훅 로그에 아무것도 남기지 않는다 |
 | 다른 플러그인과 함께 | 사용자 범위의 다른 플러그인(OMC, 기존 Notion 게이트 플러그인)이 켜진 세션에서도 1줄 |
-| 같은 이름의 다른 플러그인 | `--plugin-dir`로 로드하면 사용자 범위에 설치된 같은 이름 `harness` 플러그인이 로드 목록에서 빠진다. 두 마켓플레이스에서 둘 다 설치했을 때의 동작은 미확인 |
+| 같은 이름의 다른 플러그인 | `--plugin-dir`로 로드하면 사용자 범위에 설치된 같은 이름 `harness` 플러그인이 로드 목록에서 빠졌다 → 이름을 `issue-harness`로 바꿨다(9절) |

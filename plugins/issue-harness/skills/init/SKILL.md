@@ -4,7 +4,7 @@ description: "현재 git 레포에 harness 하네스 설정을 깐다 — .claud
 disable-model-invocation: true
 ---
 
-# /harness:init
+# /issue-harness:init
 
 아래 명령을 레포 루트에서 그대로 실행한다. **파일을 직접 쓰거나 고치지 않는다** — 복사와 비교는
 스크립트가 한다. 모델이 다시 쓰면 "두 번째 실행은 변경 없음"을 보장할 수 없다.

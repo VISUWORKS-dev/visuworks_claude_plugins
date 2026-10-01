@@ -15,7 +15,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-# harness:harness-state 스킬 「Phase 식별자」 표와 1:1이다. 표를 바꾸면 여기도 바꾼다.
+# issue-harness:harness-state 스킬 「Phase 식별자」 표와 1:1이다. 표를 바꾸면 여기도 바꾼다.
 SUB_STAGES = {
     "0-context": {"0a-git-check", "0b-state-read"},
     "1-prepare": {"1a-issue-read", "1b-dependency-check", "1c-branch"},
@@ -156,7 +156,7 @@ def check_fork(root: Path) -> list[str]:
             elif wt_state.read_bytes() != mine.read_bytes():
                 bad.append(
                     f"정본 분기: 워크트리와 primary가 다르다 — {wt_state}\n"
-                    f"  정본은 primary다. 워크트리 쪽은 읽기용 사본이다 (harness:issue-workflow 8절)"
+                    f"  정본은 primary다. 워크트리 쪽은 읽기용 사본이다 (issue-harness:issue-workflow 8절)"
                 )
     return bad
 

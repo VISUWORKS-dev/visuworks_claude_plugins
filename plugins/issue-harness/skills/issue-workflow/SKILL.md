@@ -29,7 +29,7 @@ description: "작업 단위 규약 — GitHub 이슈 = 워크트리 = PR. 이슈
 
 ## 2. 계획 — spec 문서
 
-구현 전에 `<spec_dir>/issue-<번호>.md`를 만든다. `harness:issue-planner`가 쓴다.
+구현 전에 `<spec_dir>/issue-<번호>.md`를 만든다. `issue-harness:issue-planner`가 쓴다.
 
 **왜 먼저 쓰는가:** 이슈들이 스키마·경로·상태값으로 연결되어 있으면, 계획 없이 착수한
 구현자가 계약을 임의로 정하고 그것을 읽는 다른 이슈가 나중에 틀어진다.
@@ -38,7 +38,7 @@ description: "작업 단위 규약 — GitHub 이슈 = 워크트리 = PR. 이슈
 그럴듯해 보이므로 아무도 다시 묻지 않는다 — 그게 가장 비싼 실수다.
 
 **`## 테스트 목록`을 반드시 포함한다.** 구현자는 이 목록의 항목을 하나씩 TDD로
-통과시키고(`harness:tdd-cycle`) 목록 밖을 만들지 않는다. 사람 승인 후에 구현에 들어간다.
+통과시키고(`issue-harness:tdd-cycle`) 목록 밖을 만들지 않는다. 사람 승인 후에 구현에 들어간다.
 
 ## 3. 핸드오프 커밋 — 워크트리 생성 직전
 
@@ -55,7 +55,7 @@ git commit -m "[handoff] 이슈 #<N> spec — 테스트 목록 <n>항목"
 **런타임 상태(`.harness/`)는 gitignore되어 따라오지 않는다.** 구현자는 상태 파일을
 읽지도 쓰지도 않는다 — 오케스트레이터가 현재 항목·계약·이전 실패 원인을 프롬프트에 담아
 넘기고, 돌아온 보고를 primary의 `state.json`에 반영한다. 경과는 훅이 primary에
-기록한다 (`harness:harness-state`).
+기록한다 (`issue-harness:harness-state`).
 
 제품 코드에 전달할 것이 있으면 그것만 커밋한다:
 
@@ -71,19 +71,19 @@ git commit -m "[handoff] 이슈 #<번호> <전달 내용>"
 
 ```
 Agent(
-  subagent_type: "harness:implementer",
+  subagent_type: "issue-harness:implementer",
   isolation: "worktree",
   name: "impl-<번호>",
   run_in_background: true,
   model: <model>,
-  prompt: "<harness:issue-harness Phase 3 템플릿 — 첫 모듈 묶음>"
+  prompt: "<issue-harness:issue-harness Phase 3 템플릿 — 첫 모듈 묶음>"
 )
 ```
 
 - **기준점은 primary의 현재 HEAD다** — `.claude/settings.json`의 `worktree.baseRef: "head"`.
   부르기 직전에 `git branch --show-current`가 이슈 브랜치이고 핸드오프 커밋이 HEAD에 있는지
   확인한다. 이 설정이 없으면 기본 브랜치에서 갈라져 **핸드오프 커밋이 없는 워크트리**가 된다.
-  플러그인은 이 설정을 넣을 수 없다 — `/harness:init`이 안내한다.
+  플러그인은 이 설정을 넣을 수 없다 — `/issue-harness:init`이 안내한다.
 - **위치·브랜치는 자동이다** — `.claude/worktrees/agent-<id>/`, `worktree-agent-<id>`.
   완료 알림에 경로와 브랜치가 함께 온다. `state.json`의 `agents.implementer`에 기록한다.
 - **다음 단위는 `SendMessage(to: "impl-<번호>")`로 보낸다.** 같은 워크트리·같은 맥락에서
@@ -129,7 +129,7 @@ Claude Code 워크트리는 gitignore된 의존성 설치 디렉터리(가상환
 ```
 
 **기능과 구조를 한 커밋에 섞지 않는다**(Tidy First). 섞이면 리뷰에서 "동작이 바뀐 것인가"를
-판단할 수 없고, 되돌릴 때 함께 날아간다. 상세: `harness:tdd-cycle`
+판단할 수 없고, 되돌릴 때 함께 날아간다. 상세: `issue-harness:tdd-cycle`
 
 - **작업 단위로 커밋한다.** 테스트 목록 항목 여러 개를 한 커밋에 묶을 수 있다
   (`[behavioral] T1,T2: ...`). 단 **모듈 묶음(오케스트레이터가 한 번에 보낸 단위)을 넘어서 묶지 않는다** —
@@ -171,7 +171,7 @@ origin에는 이슈 브랜치만 올라간다. PR은 `이슈 브랜치 → 기�
 **2. 구현자는 자기 워크트리 브랜치에만 커밋한다** (6절). 이슈 브랜치를 건드리지 않는다.
 
 **3. `.harness/`는 gitignore되어 워크트리에 따라오지 않는다.** 훅도 `--git-common-dir`로
-primary를 찾아 거기에만 쓴다(`harness:harness-state`). 정본은 항상 primary 하나다.
+primary를 찾아 거기에만 쓴다(`issue-harness:harness-state`). 정본은 항상 primary 하나다.
 
 ### 로컬 머지 — 오케스트레이터가 실행한다
 
@@ -180,7 +180,7 @@ primary를 찾아 거기에만 쓴다(`harness:harness-state`). 정본은 항상
 **이 실패를 결함으로 읽지 마라.** 구조상 정상이고, 머지가 그것을 닫는다.
 
 머지 조건 — **완료 알림·종료 기록만으로 머지하지 않는다.** "끝났다"만 뜻하고
-"성공했다"가 아니다(`harness:harness-state`). 셋을 확인한다:
+"성공했다"가 아니다(`issue-harness:harness-state`). 셋을 확인한다:
 
 1. 워크트리에 `[behavioral]` 커밋이 있는가 (`git -C <워크트리> log --grep "^\[behavioral\]"`)
 2. `blockers`에 `resolved: false`가 없는가

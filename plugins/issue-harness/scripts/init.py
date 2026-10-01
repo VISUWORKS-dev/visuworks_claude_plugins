@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""`/harness:init` — 프로젝트에 하네스 설정 파일을 깐다.
+"""`/issue-harness:init` — 프로젝트에 하네스 설정 파일을 깐다.
 
 규칙: **이미 있는 파일은 덮어쓰지 않는다.** 같으면 건너뛰고, 다르면 diff를 보여주고 둔다.
 병합이 필요한 파일(settings.json, .gitignore, CLAUDE.md)은 없을 때만 만들고, 있으면 빠진 것만 출력한다.
@@ -110,7 +110,7 @@ elif (root / hp).resolve() != (root / ".githooks").resolve():
 
 # 5. CLAUDE.md — 쓰지 않는다. 조각만 안내
 cm = root / "CLAUDE.md"
-if not cm.exists() or "harness:issue-harness" not in cm.read_text(encoding="utf-8"):
+if not cm.exists() or "issue-harness:issue-harness" not in cm.read_text(encoding="utf-8"):
     notes.append(f"CLAUDE.md에 하네스 절을 붙인다 — 조각: {TPL / 'claude-md-snippet.md'}")
 
 print("\n== harness init" + (" (dry-run — 아무것도 쓰지 않음)" if DRY else ""))

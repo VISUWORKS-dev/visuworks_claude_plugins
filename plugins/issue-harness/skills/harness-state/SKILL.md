@@ -86,7 +86,7 @@ description: "하네스의 실행 상태 정본 — `.harness/issue-<N>/state.js
     }
   ],
 
-  // 2단계 검증과 계약 TDD 상태 — harness:verification-protocol
+  // 2단계 검증과 계약 TDD 상태 — issue-harness:verification-protocol
   "verification": {
     "blind": { "status": "done", "output": "_workspace/verify_12_blind.md" },
     "spec":  { "status": "pending", "output": null },
@@ -180,9 +180,9 @@ description: "하네스의 실행 상태 정본 — `.harness/issue-<N>/state.js
 
 | 호출 | 무엇이 되나 | `agent_type`에 오는 값 |
 |---|---|---|
-| `Agent(subagent_type: "harness:issue-planner")` | 서브에이전트 | `"harness:issue-planner"` — **타입** |
-| `Agent(subagent_type: "harness:implementer", name: "impl-1", isolation: "worktree")` | 서브에이전트 | `"harness:implementer"` — **타입** |
-| `Agent(subagent_type: "harness:integration-qa", name: "qa-1")` (대화형, agent teams 켜짐) | 팀원 | `"qa-1"` — **이름** |
+| `Agent(subagent_type: "issue-harness:issue-planner")` | 서브에이전트 | `"issue-harness:issue-planner"` — **타입** |
+| `Agent(subagent_type: "issue-harness:implementer", name: "impl-1", isolation: "worktree")` | 서브에이전트 | `"issue-harness:implementer"` — **타입** |
+| `Agent(subagent_type: "issue-harness:integration-qa", name: "qa-1")` (대화형, agent teams 켜짐) | 팀원 | `"qa-1"` — **이름** |
 
 **팀원은 이름으로 오고, 그때는 타입을 알 방법이 없다.** 그래서 훅은 타입 화이트리스트를 쓰지 않는다 —
 **내장 에이전트만 제외하는 블랙리스트**다. 화이트리스트로 거르면 이름으로 호출된 에이전트
@@ -252,7 +252,7 @@ JSON 전체를 읽어 해당 키만 바꾸고 다시 쓴다.
 
 ## Phase 식별자
 
-`phase` / `sub_stage`에 쓰는 값. `harness:issue-harness`의 Phase와 1:1 대응한다.
+`phase` / `sub_stage`에 쓰는 값. `issue-harness:issue-harness`의 Phase와 1:1 대응한다.
 검사기(`scripts/check-state.py`의 `SUB_STAGES`)가 이 표와 같다 — 하나를 바꾸면 둘 다 바꾼다.
 
 | phase | sub_stage | 담당 에이전트 | 워크트리 |
@@ -275,7 +275,7 @@ JSON 전체를 읽어 해당 키만 바꾸고 다시 쓴다.
 
 `3a` → `3a-test` → `3b` → `3c` 순서다. `3b`↔`3c`는 모듈 묶음(spec의 `### M<n>`) 단위로 반복한다
 (묶음 하나 완성 → 즉시 검증 → 다음 묶음 "go").
-`4a`(무컨텍스트) → `4b`(컨텍스트) 순서를 뒤집지 않는다 — `harness:verification-protocol`.
+`4a`(무컨텍스트) → `4b`(컨텍스트) 순서를 뒤집지 않는다 — `issue-harness:verification-protocol`.
 
 ## 다음 에이전트 호출 판단 — 훅이 아니라 오케스트레이터가 한다
 
@@ -397,7 +397,7 @@ git -C <agents.implementer.worktree> log --oneline <핸드오프커밋>..HEAD   
 ```
 
 1. 남은 커밋이 있으면 끝난 묶음까지 **이슈 브랜치로 로컬 머지**하고 `check_cmd`
-   (`harness:issue-workflow` 8절과 같은 명령).
+   (`issue-harness:issue-workflow` 8절과 같은 명령).
 2. 그다음 남은 묶음부터 새 구현자를 부른다 — 머지된 HEAD에서 갈라지므로 앞 작업을 이어받는다.
 3. 머지한 이전 워크트리는 8절 절차로 지운다.
 

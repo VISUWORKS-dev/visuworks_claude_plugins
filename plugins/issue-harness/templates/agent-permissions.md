@@ -1,7 +1,7 @@
 # 에이전트 권한 범위 · 워크트리 필요 여부
 
-harness 플러그인의 역할 에이전트가 **쓸 수 있는 경로**와 **워크트리가 필요한지**를 정의한다.
-플러그인은 `.claude/rules/`를 로드하지 않으므로 이 파일은 프로젝트에 있다(`/harness:init`이 깐다).
+issue-harness 플러그인의 역할 에이전트가 **쓸 수 있는 경로**와 **워크트리가 필요한지**를 정의한다.
+플러그인은 `.claude/rules/`를 로드하지 않으므로 이 파일은 프로젝트에 있다(`/issue-harness:init`이 깐다).
 경로 이름(`src_dirs` 등)은 `.claude/harness.config.json`의 값이다.
 
 권한을 좁히는 이유는 에이전트를 불신해서가 아니라, 역할 경계가 무너지면 검증이 무력화되기 때문이다.
@@ -10,15 +10,15 @@ harness 플러그인의 역할 에이전트가 **쓸 수 있는 경로**와 **�
 
 | 에이전트 | 쓰기 허용 | 쓰기 금지 | 워크트리 | 커밋 |
 |---|---|---|---|---|
-| `harness:issue-planner` | `<spec_dir>/issue-<N>.md` | 그 외 전부 | 불필요 | 안 함 |
-| `harness:contract-guardian` | `contract_skill` 디렉터리 | `src_dirs`, `tests_dir`<br>**상태 파일 전부** | 불필요 | 안 함 |
-| `harness:implementer` | `src_dirs`, `tests_dir`(`contract_tests_dir` 제외) | `contract_skill`<br>`contract_tests_dir`<br>**상태 파일 전부** | **필요** | **함** |
-| `harness:integration-qa` | **`contract_tests_dir`**<br>`_workspace/` | `src_dirs`<br>`tests_dir` 나머지<br>**상태 파일 전부** | 불필요 | 안 함 |
+| `issue-harness:issue-planner` | `<spec_dir>/issue-<N>.md` | 그 외 전부 | 불필요 | 안 함 |
+| `issue-harness:contract-guardian` | `contract_skill` 디렉터리 | `src_dirs`, `tests_dir`<br>**상태 파일 전부** | 불필요 | 안 함 |
+| `issue-harness:implementer` | `src_dirs`, `tests_dir`(`contract_tests_dir` 제외) | `contract_skill`<br>`contract_tests_dir`<br>**상태 파일 전부** | **필요** | **함** |
+| `issue-harness:integration-qa` | **`contract_tests_dir`**<br>`_workspace/` | `src_dirs`<br>`tests_dir` 나머지<br>**상태 파일 전부** | 불필요 | 안 함 |
 | `domain_agents`의 에이전트 | 각 항목의 `writes` | `src_dirs`, `tests_dir`<br>**상태 파일 전부** | 불필요 | 안 함 |
 
 전원 공통 금지: **상태 파일 전부**(`state.json`·`events.jsonl`·`ACTIVE`), `git push`,
 PR 생성, **머지**(로컬 머지·기본 브랜치 머지 둘 다), 의존성 변경, `.claude/rules/`, `.gitignore`,
-`.githooks/`, CI 설정. (`harness:issue-workflow` 7·8절)
+`.githooks/`, CI 설정. (`issue-harness:issue-workflow` 7·8절)
 
 > **로컬 머지는 오케스트레이터가 한다** — 에이전트가 아니므로 위 금지에 걸리지 않는다.
 > 워크트리 → 이슈 브랜치 머지와 머지 후 `check_cmd`가 오케스트레이터 소관이고,
@@ -57,7 +57,7 @@ PR 생성, **머지**(로컬 머지·기본 브랜치 머지 둘 다), 의존성
 
 ### `implementer`의 워크트리 규칙
 
-- 생성: 오케스트레이터가 `Agent(subagent_type: "harness:implementer", isolation: "worktree")`로 부른다.
+- 생성: 오케스트레이터가 `Agent(subagent_type: "issue-harness:implementer", isolation: "worktree")`로 부른다.
   기준점은 primary의 현재 HEAD다(`.claude/settings.json`의 `worktree.baseRef: "head"`).
 - 의존성 설치 디렉터리는 그 워크트리 전용이다. **의존성 추가 금지** — 사람의 결정이다.
   필요하면 **보고에** blocker(`owner: "human"`)로 올리고 멈춘다.
@@ -76,7 +76,7 @@ PR 생성, **머지**(로컬 머지·기본 브랜치 머지 둘 다), 의존성
 | 필요한 상태 | **오케스트레이터가 프롬프트에 담아 준다.** 없으면 추측하지 말고 요청한다 |
 | 자기 진행·발견 | **최종 보고에** 적는다 |
 
-`phase`·`sub_stage`·`status` 전이는 **오케스트레이터만** 바꾼다. 상세: `harness:harness-state`.
+`phase`·`sub_stage`·`status` 전이는 **오케스트레이터만** 바꾼다. 상세: `issue-harness:harness-state`.
 
 ## 커밋 규약은 git hook이 강제한다
 

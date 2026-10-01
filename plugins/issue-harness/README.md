@@ -1,4 +1,4 @@
-# harness
+# issue-harness
 
 이슈 하나를 **계획 → 계약 확정 → 테스트 목록 TDD 구현 → 2단계 검증 → 로컬 머지**까지 태우는
 멀티 에이전트 하네스. 경계면 불일치를 마감 직전이 아니라 모듈 완성 직후에 잡는 것이 목표다.
@@ -15,24 +15,24 @@
 
 | 종류 | 이름 | 역할 |
 |---|---|---|
-| 스킬 | `harness:issue-harness` | 오케스트레이터. 트리거 |
-| 스킬 | `harness:harness-state` | state.json 스키마·전이 규칙·재개 절차 |
-| 스킬 | `harness:verification-protocol` | 2단계 검증·계약 TDD |
-| 스킬 | `harness:tdd-cycle` | 테스트 목록 한 항목씩 |
-| 스킬 | `harness:scope-guard` | 범위 절제 판정 |
-| 스킬 | `harness:issue-workflow` | 브랜치·핸드오프·워크트리·로컬 머지 |
-| 스킬 | `/harness:init` | 프로젝트에 설정 깔기 (사람이 직접 호출) |
-| 에이전트 | `harness:issue-planner` | 이슈 → spec(테스트 목록) |
-| 에이전트 | `harness:contract-guardian` | 경계면 계약 소유 |
-| 에이전트 | `harness:implementer` | 격리 워크트리에서 TDD 구현·커밋 |
-| 에이전트 | `harness:integration-qa` | 계약 테스트 선작성, 경계면·2단계 검증 |
+| 스킬 | `issue-harness:issue-harness` | 오케스트레이터. 트리거 |
+| 스킬 | `issue-harness:harness-state` | state.json 스키마·전이 규칙·재개 절차 |
+| 스킬 | `issue-harness:verification-protocol` | 2단계 검증·계약 TDD |
+| 스킬 | `issue-harness:tdd-cycle` | 테스트 목록 한 항목씩 |
+| 스킬 | `issue-harness:scope-guard` | 범위 절제 판정 |
+| 스킬 | `issue-harness:issue-workflow` | 브랜치·핸드오프·워크트리·로컬 머지 |
+| 스킬 | `/issue-harness:init` | 프로젝트에 설정 깔기 (사람이 직접 호출) |
+| 에이전트 | `issue-harness:issue-planner` | 이슈 → spec(테스트 목록) |
+| 에이전트 | `issue-harness:contract-guardian` | 경계면 계약 소유 |
+| 에이전트 | `issue-harness:implementer` | 격리 워크트리에서 TDD 구현·커밋 |
+| 에이전트 | `issue-harness:integration-qa` | 계약 테스트 선작성, 경계면·2단계 검증 |
 | 훅 | `SubagentStop` | 서브에이전트 최종 보고를 `events.jsonl`에 기록 |
 
 ## 설치
 
 ```
 /plugin marketplace add VISUWORKS-dev/visuworks_claude_plugins
-/plugin install harness@visuworks-marketplace
+/plugin install issue-harness@visuworks-marketplace
 ```
 
 ### 프로젝트 단위로 켜기
@@ -47,19 +47,19 @@
       "source": { "source": "github", "repo": "VISUWORKS-dev/visuworks_claude_plugins" }
     }
   },
-  "enabledPlugins": { "harness@visuworks-marketplace": true }
+  "enabledPlugins": { "issue-harness@visuworks-marketplace": true }
 }
 ```
 
 ### 개발 중 로컬 로드
 
 ```
-claude --plugin-dir <이 레포>/plugins/harness
+claude --plugin-dir <이 레포>/plugins/issue-harness
 ```
 
-## 프로젝트에 깔기 — `/harness:init`
+## 프로젝트에 깔기 — `/issue-harness:init`
 
-레포 루트에서 `/harness:init`을 실행한다. 이미 있는 파일은 덮어쓰지 않고 diff만 보여준다
+레포 루트에서 `/issue-harness:init`을 실행한다. 이미 있는 파일은 덮어쓰지 않고 diff만 보여준다
 (`harness.config.json`은 값을 채워 쓰는 파일이라 있으면 비교도 하지 않는다).
 두 번째 실행은 아무것도 쓰지 않는다. `--dry-run`으로 미리 볼 수 있다.
 
@@ -100,14 +100,14 @@ tracked 파일이다. 오케스트레이터·에이전트(모델)와 git hook(�
 }
 ```
 
-파일이 없으면 오케스트레이터는 멈추고 `/harness:init`을 안내한다. git hook은 기본값(`tests/`)으로 돈다.
+파일이 없으면 오케스트레이터는 멈추고 `/issue-harness:init`을 안내한다. git hook은 기본값(`tests/`)으로 돈다.
 
 ## 상태 검사
 
 오케스트레이터가 `state.json`을 쓸 때마다 돌린다. 터미널에서 직접 돌리려면 플러그인 경로가 필요하다:
 
 ```bash
-python3 "$(claude plugin list --json | python3 -c 'import json,sys;print(next(p["installPath"] for p in json.load(sys.stdin) if p["id"]=="harness@visuworks-marketplace"))')/scripts/check-state.py"
+python3 "$(claude plugin list --json | python3 -c 'import json,sys;print(next(p["installPath"] for p in json.load(sys.stdin) if p["id"]=="issue-harness@visuworks-marketplace"))')/scripts/check-state.py"
 ```
 
 경로는 플러그인 버전마다 바뀐다 — Makefile 등에 고정하지 않는다.
@@ -124,5 +124,5 @@ python3 "$(claude plugin list --json | python3 -c 'import json,sys;print(next(p[
 ## 검증
 
 ```
-claude plugin validate plugins/harness
+claude plugin validate plugins/issue-harness
 ```

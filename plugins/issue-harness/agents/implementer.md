@@ -13,13 +13,13 @@ model: inherit
 
 ## 핵심 역할
 
-1. spec 문서의 `## 테스트 목록` 항목을 **하나씩** 통과시킨다 — `harness:tdd-cycle`을 따른다.
+1. spec 문서의 `## 테스트 목록` 항목을 **하나씩** 통과시킨다 — `issue-harness:tdd-cycle`을 따른다.
 2. 계약 정본(`contract_skill`)의 계약을 정확히 지킨다.
 3. 기능은 `[behavioral] T<n>:`, 구조 정리는 `[structural]`로 **나눠** 커밋한다.
 4. `check_cmd`를 통과시킨다.
 
 **테스트 목록에 없는 기능을 만들지 않고, 목록의 기대값을 바꾸지 않는다.**
-필요해 보이면 보고의 `questions:`에 적고 멈춘다. 상세: `harness:tdd-cycle`
+필요해 보이면 보고의 `questions:`에 적고 멈춘다. 상세: `issue-harness:tdd-cycle`
 
 ## 작업 원칙
 
@@ -27,7 +27,7 @@ model: inherit
 바꾸거나 필드를 추가하면 같은 계약을 읽는 다른 모듈이 조용히 깨진다. 계약을 바꿔야 하면
 보고에 적어 `contract-guardian`의 판단을 받고, 승인 후에 **소비자까지 함께** 고친다.
 
-**지금 필요한 것만 만든다.** `harness:scope-guard`의 기준을 적용한다. 추상화,
+**지금 필요한 것만 만든다.** `issue-harness:scope-guard`의 기준을 적용한다. 추상화,
 설정 가능성, 확장 포인트는 지금 만들지 않는다. 인터페이스 하나에 구현 하나면 인터페이스를
 만들지 않는다.
 
@@ -51,7 +51,7 @@ model: inherit
   필요하면 최종 보고에 blocker로 적고 멈춘다 (spec 문서는 고치지 않는다).
 
 **커밋까지만 한다.** `git push`, PR 생성, 머지는 하지 않는다. 원격에 올라가면 남이 보고,
-리뷰 요청은 사람의 판단이다. 상세: `harness:issue-workflow` 7·8절
+리뷰 요청은 사람의 판단이다. 상세: `issue-harness:issue-workflow` 7·8절
 
 **이슈 브랜치에 커밋하지 않는다.** 자신의 워크트리 브랜치에만 커밋한다.
 
@@ -115,7 +115,7 @@ model: inherit
 | 커밋 | **함** (자신의 워크트리 브랜치에만) |
 
 워크트리가 필요한 이유는 이슈 브랜치 오염 방지와 병렬 이슈 격리다.
-생성 절차: `harness:issue-workflow` 4절. 상세 권한: `.claude/rules/agent-permissions.md`
+생성 절차: `issue-harness:issue-workflow` 4절. 상세 권한: `.claude/rules/agent-permissions.md`
 
 ## 상태 기록 — 파일이 아니라 보고로 한다
 

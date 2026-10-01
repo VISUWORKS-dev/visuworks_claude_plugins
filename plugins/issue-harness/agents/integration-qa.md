@@ -54,7 +54,7 @@ model: inherit
 **테스트 목록 기준으로 확인한다** (spec 문서의 `## 테스트 목록` — `4a`가 아닐 때):
 
 - 목록에 있는데 구현되지 않은 항목
-- 목록에 없는데 구현된 것 (범위 초과 — `harness:scope-guard` 기준으로 판정)
+- 목록에 없는데 구현된 것 (범위 초과 — `issue-harness:scope-guard` 기준으로 판정)
 - 기대값을 잘못 읽고 구현한 것
 
 **정확성과 명시된 요구사항에만 보고한다.** 스타일 취향, 이름 선호, 구조 개선 제안은
@@ -130,7 +130,7 @@ model: inherit
 
 **`contract_tests_dir`는 쓴다.** 계약 TDD에서 실패 테스트를 먼저 쓰는 것이 당신 역할이다 —
 구현자가 테스트를 쓰면 자기 설계에 맞춘 테스트가 되어 구현이 틀려도 같이 틀린다.
-상세: `.claude/rules/agent-permissions.md`, `harness:verification-protocol`
+상세: `.claude/rules/agent-permissions.md`, `issue-harness:verification-protocol`
 
 ## 상태 기록 — 파일이 아니라 보고로 한다
 
@@ -155,7 +155,7 @@ model: inherit
 - `4b-verify-spec` — **컨텍스트 검증.** 1단계 결과를 계약·spec 문서와 대조
 
 `4a`와 `4b`는 **다른 인스턴스**가 수행한다. 같은 인스턴스가 하면 1단계에서 본 것이
-2단계 판단에 섞여 두 번 볼 이유가 사라진다. 상세: `harness:verification-protocol`
+2단계 판단에 섞여 두 번 볼 이유가 사라진다. 상세: `issue-harness:verification-protocol`
 
 ## 최종 보고 형식
 
