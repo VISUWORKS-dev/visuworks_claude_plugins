@@ -31,7 +31,7 @@ python3 "${CLAUDE_PLUGIN_ROOT}/scripts/init.py" $ARGUMENTS
 
 | 파일 | 역할 |
 |---|---|
-| `.claude/harness.config.json` | 프로젝트 값 — 오케스트레이터·에이전트·git hook이 읽는다 |
+| `.claude/harness.config.json` | 프로젝트 값 — 오케스트레이터·에이전트·git hook이 읽는다. 이미 있으면 비교하지 않는다(값을 채운 파일) |
 | `.claude/rules/agent-permissions.md` | 에이전트 권한 규칙. 플러그인은 rules를 로드하지 않으므로 프로젝트에 둔다 |
 | `.githooks/commit-msg`·`pre-commit`·`_harness.py` | 커밋 메시지 형식·테스트 약화 차단 |
 | `git config core.hooksPath .githooks` | 비어 있을 때만 |

@@ -247,7 +247,7 @@ ask가 뜨는 것은 하네스와 무관하게 원래 동작이다. OMC 등 다�
 
 | 대상 | 원본 | 없을 때 | 있고 같을 때 | 있고 다를 때 |
 |---|---|---|---|---|
-| `.claude/harness.config.json` | `templates/harness.config.json` | 생성 | 건너뜀 | **diff 출력, 건드리지 않음** |
+| `.claude/harness.config.json` | `templates/harness.config.json` | 생성 | 건너뜀 | **건너뜀** — 프로젝트 값을 채우는 파일이라 다른 것이 정상 |
 | `.claude/rules/agent-permissions.md` | `templates/agent-permissions.md` | 생성 | 건너뜀 | diff 출력 |
 | `.githooks/commit-msg`·`pre-commit`·`_harness.py` | `templates/githooks/` | 생성 + 실행 비트 | 건너뜀 | diff 출력 |
 

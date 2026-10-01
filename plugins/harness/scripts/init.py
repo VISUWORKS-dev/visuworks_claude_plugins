@@ -17,12 +17,13 @@ import sys
 TPL = pathlib.Path(__file__).resolve().parent.parent / "templates"
 DRY = "--dry-run" in sys.argv
 
+# (템플릿, 대상, 실행 비트, 프로젝트가 고쳐 쓰는 파일인가)
 COPIES = [
-    ("harness.config.json", ".claude/harness.config.json", False),
-    ("agent-permissions.md", ".claude/rules/agent-permissions.md", False),
-    ("githooks/commit-msg", ".githooks/commit-msg", True),
-    ("githooks/pre-commit", ".githooks/pre-commit", True),
-    ("githooks/_harness.py", ".githooks/_harness.py", False),
+    ("harness.config.json", ".claude/harness.config.json", False, True),
+    ("agent-permissions.md", ".claude/rules/agent-permissions.md", False, False),
+    ("githooks/commit-msg", ".githooks/commit-msg", True, False),
+    ("githooks/pre-commit", ".githooks/pre-commit", True, False),
+    ("githooks/_harness.py", ".githooks/_harness.py", False, False),
 ]
 DENY = ["Bash(git commit --no-verify*)", "Bash(git commit -n *)"]
 IGNORE = [".claude/worktrees/", ".harness/", ".harness.bak-*/", "_workspace/", "_workspace_*/"]
@@ -53,11 +54,13 @@ def write(rel, text, exe=False):
 
 
 # 1. 그대로 복사하는 파일
-for src, dst, exe in COPIES:
+for src, dst, exe, owned in COPIES:
     new = (TPL / src).read_text(encoding="utf-8")
     p = root / dst
     if not p.exists():
         write(dst, new, exe)
+    elif owned:
+        pass  # 프로젝트 값을 채운 파일이다 — 템플릿과 다른 것이 정상
     elif p.read_text(encoding="utf-8") != new:
         diffs.append(dst)
         print(f"\n[다름 — 건드리지 않음] {dst}")
@@ -102,7 +105,7 @@ if not hp:
     wrote.append("git config core.hooksPath .githooks")
     if not DRY:
         git("config", "--local", "core.hooksPath", ".githooks")
-elif hp.rstrip("/") != ".githooks":
+elif (root / hp).resolve() != (root / ".githooks").resolve():
     notes.append(f"core.hooksPath가 {hp!r}다 — .githooks의 commit-msg·pre-commit이 돌지 않는다. 직접 정한다")
 
 # 5. CLAUDE.md — 쓰지 않는다. 조각만 안내

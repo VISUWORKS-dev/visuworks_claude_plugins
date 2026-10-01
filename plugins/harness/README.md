@@ -59,7 +59,8 @@ claude --plugin-dir <이 레포>/plugins/harness
 
 ## 프로젝트에 깔기 — `/harness:init`
 
-레포 루트에서 `/harness:init`을 실행한다. 이미 있는 파일은 덮어쓰지 않고 diff만 보여준다.
+레포 루트에서 `/harness:init`을 실행한다. 이미 있는 파일은 덮어쓰지 않고 diff만 보여준다
+(`harness.config.json`은 값을 채워 쓰는 파일이라 있으면 비교도 하지 않는다).
 두 번째 실행은 아무것도 쓰지 않는다. `--dry-run`으로 미리 볼 수 있다.
 
 | 깔리는 것 | 왜 프로젝트에 있어야 하나 |
