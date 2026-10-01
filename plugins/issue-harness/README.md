@@ -26,7 +26,7 @@
 | 에이전트 | `issue-harness:contract-guardian` | 경계면 계약 소유 |
 | 에이전트 | `issue-harness:implementer` | 격리 워크트리에서 TDD 구현·커밋 |
 | 에이전트 | `issue-harness:integration-qa` | 계약 테스트 선작성, 경계면·2단계 검증 |
-| 훅 | `SubagentStop` | 서브에이전트 최종 보고를 `events.jsonl`에 기록 |
+| 훅 | `SubagentStop`, `PostToolUse`(`SendMessage`) | 에이전트 종료와 에이전트가 보낸 메시지(팀원 보고)를 `events.jsonl`에 기록 |
 
 ## 설치
 
@@ -114,7 +114,7 @@ python3 "$(claude plugin list --json | python3 -c 'import json,sys;print(next(p[
 
 ## 훅의 동작 범위
 
-`SubagentStop` 훅은 플러그인이 켜진 **모든 세션**에서 발화한다. git 레포가 아니거나
+훅(`SubagentStop`, `SendMessage`의 `PostToolUse`)은 플러그인이 켜진 **모든 세션**에서 발화한다. git 레포가 아니거나
 `.harness/ACTIVE`가 없으면 로그도 남기지 않고 끝난다. 하네스 안에서의 기록·건너뜀·실패는
 `~/.claude/harness-hook.log`(`HARNESS_HOOK_LOG`로 변경)에 남는다.
 

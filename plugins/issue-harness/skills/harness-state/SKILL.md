@@ -129,7 +129,7 @@ description: "하네스의 실행 상태 정본 — `.harness/issue-<N>/state.js
 필요한 상태는 오케스트레이터가 프롬프트에 담아 준다.
 
 **경과(`events.jsonl`)는 훅이 쓴다.** `source` 필드로 누가 쓴 줄인지 구분한다 —
-`subagent`(서브에이전트 종료) / `githook`(커밋 차단). 오래된 기록에는 `worktree`(별 세션
+`subagent`(서브에이전트·팀원 종료) / `message`(에이전트가 보낸 `SendMessage`) / `githook`(커밋 차단). 오래된 기록에는 `worktree`(별 세션
 워크트리 종료)·`migrated`(이관)가 남아 있을 수 있다.
 
 > **왜 이렇게 나눴나.** 여럿이 한 JSON 파일을 읽고-고치고-쓰면 락·임시파일 교체·병합이
@@ -140,7 +140,9 @@ description: "하네스의 실행 상태 정본 — `.harness/issue-<N>/state.js
 
 ```jsonc
 // 서브에이전트 종료
-{"at":"...","source":"subagent","agent":"qa-12","agent_id":"a-2","cwd":"...","msg":"item: T3\nresult: pass\n..."}
+{"at":"...","source":"subagent","agent":"issue-harness:integration-qa","agent_id":"a-2","cwd":"...","msg":"item: T3\nresult: pass\n..."}
+// 팀원이 보고를 보냈을 때 (SendMessage)
+{"at":"...","source":"message","agent":"qa","agent_id":"aqa-…","cwd":"...","to":"team-lead","msg":"result: pass\n..."}
 // git hook이 커밋을 막았을 때
 {"at":"...","source":"githook","hook":"pre-commit","event":"commit_blocked","reason":"skip/xfail 추가: ..."}
 ```
@@ -150,7 +152,19 @@ description: "하네스의 실행 상태 정본 — `.harness/issue-<N>/state.js
 
 ### 훅 — `${CLAUDE_PLUGIN_ROOT}/scripts/record-agent-event.py`
 
-플러그인의 `SubagentStop` 훅이다. **에이전트가 기록을 깜빡할 수 없다** — 종료하면 발화한다.
+플러그인 훅이다. 두 이벤트에 붙는다. **에이전트가 기록을 깜빡할 수 없다.**
+
+| 이벤트 | 무엇 | `source` | `msg` |
+|---|---|---|---|
+| `SubagentStop` | 서브에이전트·팀원이 멈췄다 | `subagent` | 마지막 텍스트 |
+| `PostToolUse`(`SendMessage`) | **에이전트가** 메시지를 보냈다 | `message` | 보낸 메시지 원문 (`to` 함께) |
+
+**보고 원문이 어느 줄에 있나.** 서브에이전트는 마지막 텍스트가 곧 보고라 `subagent` 줄에 있다.
+팀원은 보고를 `SendMessage`로 보내고 맺음말("보냈다")을 남기고 멈춘다 — 보고 원문은 `message` 줄에,
+`subagent` 줄에는 맺음말이 있다. 팀원 하나가 보고 한 번에 두 줄(`message` → `subagent`)을 남긴다.
+
+오케스트레이터(메인 스레드)가 보내는 메시지("go", 후속 지시)는 기록하지 않는다 — 지시이지 경과가 아니고,
+`agent_id`가 없어 구별된다. 팀원끼리 보낸 메시지(계약 변경 통보 등)는 기록된다.
 격리 워크트리의 구현자도 이 세션의 서브에이전트이므로 여기서 잡힌다(`SendMessage`로 재개할
 때마다 한 줄).
 

@@ -493,9 +493,10 @@ scope/workflow 보충 스킬이다. 원본의 `issue-workflow`·`poc-scope-guard
 | 이름 공간 | 에이전트 4개·스킬 7개가 `issue-harness:` 접두사로 보이고 `/issue-harness:init`이 슬래시 명령으로 뜬다 |
 | 서브에이전트 1회 → `events.jsonl` | 정확히 1줄. `agent`는 타입(`issue-harness:issue-planner`) |
 | `isolation: worktree` + `name` | 서브에이전트로 남는다. 워크트리는 primary의 현재 HEAD에서 갈라지고, `SendMessage`로 이어간 작업이 같은 워크트리에서 진행된다. 멈출 때마다 1줄, `agent`는 타입 |
-| 팀원 (`name`을 준 `Agent`, 대화형·agent teams 켜짐) | 플러그인 타입을 그대로 쓸 수 있다. 팀 config의 멤버 `agentType`이 `issue-harness:integration-qa`. 기록 1줄, `agent`는 **이름**. `msg`는 팀원의 마지막 텍스트라 보고 본문이 아닐 수 있다 |
+| 팀원 (`name`을 준 `Agent`, 대화형·agent teams 켜짐) | 플러그인 타입을 그대로 쓸 수 있다. 팀 config의 멤버 `agentType`이 `issue-harness:integration-qa`. 기록 1줄, `agent`는 **이름**. `msg`는 팀원의 마지막 텍스트(맺음말)였다 → 아래 행 |
 | `TeamCreate` | **도구가 없다.** 팀원은 `name`을 준 `Agent` 호출로 생긴다(agent-teams 문서). 6절 A2는 이 방식으로 바꿨다 |
 | `name`의 부작용 | 대화형 세션에서 계획·최종 검증 호출에 `name`을 주면 팀원이 된다 → 그 호출에는 `name`을 주지 않는다 |
 | 하네스 밖 | 비-git 디렉터리·`.harness` 없는 레포에서 `SubagentStop` 훅이 발화하고(디버그 로그) 훅 로그에 아무것도 남기지 않는다 |
 | 다른 플러그인과 함께 | 사용자 범위의 다른 플러그인(OMC, 기존 Notion 게이트 플러그인)이 켜진 세션에서도 1줄 |
 | 같은 이름의 다른 플러그인 | `--plugin-dir`로 로드하면 사용자 범위에 설치된 같은 이름 `harness` 플러그인이 로드 목록에서 빠졌다 → 이름을 `issue-harness`로 바꿨다(9절) |
+| 팀원 보고 기록 (`PostToolUse`(`SendMessage`) 추가 후) | 팀원에게 작업 2회 → `message`(보고 원문, `to: team-lead`)·`subagent`(맺음말)가 번갈아 4줄. 오케스트레이터가 팀원에게 보낸 후속 지시는 0줄(`agent_id` 없음). 서브에이전트 1줄, 격리 구현자 + `SendMessage` 재개 2줄로 회귀 없음 |

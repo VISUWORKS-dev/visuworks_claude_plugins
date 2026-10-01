@@ -1,8 +1,19 @@
 {
-  "description": "서브에이전트 종료 보고를 활성 이슈의 .harness/<issue>/events.jsonl에 append한다. .harness/ACTIVE가 없거나 git 레포가 아니면 아무것도 하지 않는다.",
+  "description": "에이전트 보고를 활성 이슈의 .harness/<issue>/events.jsonl에 append한다 — 서브에이전트·팀원 종료(SubagentStop)와 에이전트가 보낸 SendMessage(PostToolUse). .harness/ACTIVE가 없거나 git 레포가 아니면 아무것도 하지 않는다.",
   "hooks": {
     "SubagentStop": [
       {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/scripts/record-agent-event.py\""
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "SendMessage",
         "hooks": [
           {
             "type": "command",

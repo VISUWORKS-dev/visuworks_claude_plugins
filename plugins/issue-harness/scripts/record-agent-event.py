@@ -1,5 +1,13 @@
 #!/usr/bin/env python3
-"""서브에이전트 종료(`SubagentStop`)를 `events.jsonl`에 한 줄 append한다.
+"""에이전트의 보고를 `events.jsonl`에 한 줄 append한다. 두 이벤트를 받는다.
+
+| 이벤트 | 무엇 | `source` |
+|---|---|---|
+| `SubagentStop` | 서브에이전트·팀원이 멈췄다. `msg`는 마지막 텍스트 | `subagent` |
+| `PostToolUse`(`SendMessage`) | **에이전트가** 보낸 메시지. 팀원은 보고를 이것으로 보낸다 | `message` |
+
+팀원의 마지막 텍스트는 보고가 아니라 "보냈다"는 맺음말이다 — 보고 본문은 `SendMessage`에 있다.
+오케스트레이터(메인 스레드)가 보내는 메시지는 지시라서 기록하지 않는다(`agent_id`가 없다).
 
 플러그인 훅이라 **플러그인이 켜진 모든 세션**에서 발화한다. 하네스를 쓰지 않는 곳
 (git 레포가 아님, `.harness/ACTIVE` 없음)에서는 로그도 없이 즉시 끝낸다 — 그런 세션마다
@@ -63,18 +71,25 @@ try:
     if h is None or not (h / "ACTIVE").exists():
         sys.exit(0)
 
+    event = p.get("hook_event_name") or "SubagentStop"
     agent = p.get("agent_type") or ""
     if not p.get("agent_id") or agent in BUILTIN:
-        log(f"subagent-stop skipped: agent_type={agent!r} agent_id={p.get('agent_id')!r}")
+        log(f"{event} skipped: agent_type={agent!r} agent_id={p.get('agent_id')!r}")
         sys.exit(0)
 
     issue = (h / "ACTIVE").read_text(encoding="utf-8").strip()
     # source는 필수다 — git hook도 같은 파일에 append한다. 없으면 누가 쓴 줄인지 모른다.
     ev = {"at": datetime.datetime.now().astimezone().isoformat(timespec="seconds"),
-          "source": "subagent", "agent": agent, "agent_id": p["agent_id"],
-          "cwd": cwd, "msg": (p.get("last_assistant_message") or "").strip()}
+          "source": "subagent", "agent": agent, "agent_id": p["agent_id"], "cwd": cwd}
+    if event == "PostToolUse":
+        ti = p.get("tool_input") or {}
+        msg = ti.get("message")
+        ev.update(source="message", to=ti.get("to"),
+                  msg=msg.strip() if isinstance(msg, str) else json.dumps(msg, ensure_ascii=False))
+    else:
+        ev["msg"] = (p.get("last_assistant_message") or "").strip()
     with open(h / issue / "events.jsonl", "a", encoding="utf-8") as f:
         f.write(json.dumps(ev, ensure_ascii=False) + "\n")
-    log(f"subagent recorded: {agent} -> {issue}")
+    log(f"{ev['source']} recorded: {agent} -> {issue}")
 except Exception as e:
     log(f"hook FAILED {type(e).__name__}: {e}")
