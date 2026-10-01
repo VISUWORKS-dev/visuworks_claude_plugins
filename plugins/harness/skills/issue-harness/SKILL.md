@@ -18,7 +18,7 @@ cat .claude/harness.config.json
 
 | 키 | 쓰는 곳 |
 |---|---|
-| `model` | 모든 `Agent`·`TeamCreate` 호출의 `model`. 없으면 넣지 않는다 |
+| `model` | 모든 `Agent` 호출(팀원 포함)의 `model`. 없으면 넣지 않는다 |
 | `check_cmd` | `4c`·`4e`, 구현자의 커밋 전 검증 |
 | `contract_test_cmd` | `3a-test`의 실패 확인 |
 | `src_dirs`·`tests_dir`·`contract_tests_dir` | 권한, 프롬프트 |
@@ -47,8 +47,15 @@ cat .claude/harness.config.json
 | `integration-qa` | `harness:integration-qa` | 경계면 검증 | `<contract_skill>`, `harness:verification-protocol` |
 | `<domain_agents[].name>` | 그 이름 그대로 | 도메인 판단 (`decides`) | 프로젝트 정의 |
 
-**모든 호출에 `name`을 준다** (예: `planner-<N>`, `impl-<N>`, `qa-<N>-blind`). 훅이 기록하는
-`agent` 값이 호출 이름으로 고정되고, `SendMessage`의 대상이 된다.
+**`name`은 의미가 있다 — 아무 호출에나 주지 않는다.** agent teams가 켜진 대화형 세션에서
+`name`을 준 `Agent` 호출은 **팀원**이 된다(`isolation`을 준 호출은 예외 — 서브에이전트로 남는다).
+
+| 호출 | `name` | 무엇이 되나 | 훅이 기록하는 `agent` |
+|---|---|---|---|
+| 계획(`2a`), 최종 검증(`4a`·`4b`) | **주지 않는다** | 서브에이전트 — 팀에서 분리돼야 한다 | `harness:<역할>` |
+| 구현(`3b`) | `impl-<N>` + `isolation: "worktree"` | 서브에이전트 (`SendMessage`로 이어감) | `harness:implementer` |
+| Phase 3 팀원 | `contract`·`domain`·`qa` 등 | 팀원 | 팀원 이름 |
+
 `state.json`의 `agents` 키는 접두사 없는 역할 이름(`implementer`)으로 쓴다.
 
 ### 권한 · 워크트리
@@ -192,7 +199,6 @@ tail -20 .harness/issue-<N>/events.jsonl # 0b: 무슨 일이 있었는가 (경�
 ```
 Agent(
   subagent_type: "harness:issue-planner",
-  name: "planner-<N>",
   model: <model>,
   prompt: "이슈 #<N>의 작업 계획을 작성한다. <이슈 본문>.
            계약 정본: <contract_skill 또는 '없음 — spec에 계약 절을 쓴다'>.
@@ -331,19 +337,20 @@ spec도 계약 테스트도 없는 워크트리가 된다.
 
    팀원이 1명이면 팀을 만들지 않고 서브에이전트(`Agent`)로 부른다.
 
+   팀원은 `name`을 준 `Agent` 호출로 띄운다(agent teams가 켜진 대화형 세션). 플러그인 타입을
+   그대로 쓸 수 있다:
+
    ```
-   TeamCreate(
-     team_name: "issue-<N>",
-     members: [
-       { name: "contract", agent_type: "harness:contract-guardian", model: <model>, prompt: "..." },
-       { name: "domain",   agent_type: "<domain_agents[0].name>",   model: <model>, prompt: "..." },
-       { name: "qa",       agent_type: "harness:integration-qa",    model: <model>, prompt: "..." }
-     ]
-   )
+   Agent(subagent_type: "harness:contract-guardian", name: "contract", model: <model>, prompt: "...")
+   Agent(subagent_type: "<domain_agents[0].name>",   name: "domain",   model: <model>, prompt: "...")
+   Agent(subagent_type: "harness:integration-qa",    name: "qa",       model: <model>, prompt: "...")
    ```
 
-   팀이 플러그인 에이전트 타입을 받지 않으면 같은 역할을 `Agent` 서브에이전트로 부르고,
-   팀원 간 통보는 오케스트레이터가 `SendMessage`로 잇는다.
+   agent teams가 꺼져 있거나 비대화형(`-p`) 세션이면 같은 호출이 서브에이전트로 돈다 —
+   그때 팀원 간 통보는 오케스트레이터가 `SendMessage`로 잇는다.
+
+   **팀원의 보고는 `SendMessage`로 온다.** 훅이 남기는 `msg`는 팀원이 멈출 때의 마지막 텍스트라
+   보고 본문이 아닐 수 있다. 팀원 보고는 받은 메시지를 정본으로 `state.json`에 옮긴다.
 
 2. 작업 등록 — spec 문서의 작업 단위 중 **팀이 하는 것만** 옮긴다. 구현 단위는 팀 작업이
    아니다 — 오케스트레이터가 위 루프로 넘긴다.
@@ -376,7 +383,7 @@ spec도 계약 테스트도 없는 워크트리가 된다.
 
 **실행 모드: 서브 에이전트**
 
-1. 팀 정리 (`TeamDelete`). 구현 산출물은 커밋·`_workspace/`에 남아 있다.
+1. 팀원을 종료한다. 구현 산출물은 커밋·`_workspace/`에 남아 있다.
    **구현 팀에서 분리해서 호출하는 이유:** 팀 안에서 검증하면 검증자가 구현 맥락에 물들어
    "아마 될 것 같다"를 통과로 준다.
 
@@ -384,7 +391,6 @@ spec도 계약 테스트도 없는 워크트리가 된다.
    ```
    Agent(
      subagent_type: "harness:integration-qa",
-     name: "qa-<N>-blind",
      model: <model>,
      prompt: "이슈 #<N> '<제목>' 구현의 실제 동작을 기록한다.
               너는 명세·계약 문서·작업 계획을 받지 못한다. 요청하지도 마라.
@@ -401,7 +407,6 @@ spec도 계약 테스트도 없는 워크트리가 된다.
    ```
    Agent(
      subagent_type: "harness:integration-qa",
-     name: "qa-<N>-spec",
      model: <model>,
      prompt: "_workspace/verify_<N>_blind.md를 읽는다. 명세를 모르는 검증자가 기록한
               코드의 실제 동작이다. 이제 <contract_skill>, spec 문서, 이슈 #<N>을 읽고

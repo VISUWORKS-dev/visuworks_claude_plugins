@@ -483,3 +483,19 @@ scope/workflow 보충 스킬이다. 원본의 `issue-workflow`·`poc-scope-guard
 다른 마켓플레이스에 `harness`라는 이름의 플러그인이 있고 함께 설치될 수 있다. 두 플러그인이
 모두 켜지면 `harness:` 접두사를 공유한다. 스킬·에이전트 이름이 겹치지 않으면 공존할 수도 있지만
 문서에 규칙이 없다 — 실측으로 확인한다.
+
+## 10. 실측 결과 (Claude Code v2.1.285)
+
+`--plugin-dir`로 로드한 실제 세션에서 확인했다. 합성 페이로드는 쓰지 않았다.
+
+| 항목 | 결과 |
+|---|---|
+| 이름 공간 | 에이전트 4개·스킬 7개가 `harness:` 접두사로 보이고 `/harness:init`이 슬래시 명령으로 뜬다 |
+| 서브에이전트 1회 → `events.jsonl` | 정확히 1줄. `agent`는 타입(`harness:issue-planner`) |
+| `isolation: worktree` + `name` | 서브에이전트로 남는다. 워크트리는 primary의 현재 HEAD에서 갈라지고, `SendMessage`로 이어간 작업이 같은 워크트리에서 진행된다. 멈출 때마다 1줄, `agent`는 타입 |
+| 팀원 (`name`을 준 `Agent`, 대화형·agent teams 켜짐) | 플러그인 타입을 그대로 쓸 수 있다. 팀 config의 멤버 `agentType`이 `harness:integration-qa`. 기록 1줄, `agent`는 **이름**. `msg`는 팀원의 마지막 텍스트라 보고 본문이 아닐 수 있다 |
+| `TeamCreate` | **도구가 없다.** 팀원은 `name`을 준 `Agent` 호출로 생긴다(agent-teams 문서). 6절 A2는 이 방식으로 바꿨다 |
+| `name`의 부작용 | 대화형 세션에서 계획·최종 검증 호출에 `name`을 주면 팀원이 된다 → 그 호출에는 `name`을 주지 않는다 |
+| 하네스 밖 | 비-git 디렉터리·`.harness` 없는 레포에서 `SubagentStop` 훅이 발화하고(디버그 로그) 훅 로그에 아무것도 남기지 않는다 |
+| 다른 플러그인과 함께 | 사용자 범위의 다른 플러그인(OMC, 기존 Notion 게이트 플러그인)이 켜진 세션에서도 1줄 |
+| 같은 이름의 다른 플러그인 | `--plugin-dir`로 로드하면 사용자 범위에 설치된 같은 이름 `harness` 플러그인이 로드 목록에서 빠진다. 두 마켓플레이스에서 둘 다 설치했을 때의 동작은 미확인 |

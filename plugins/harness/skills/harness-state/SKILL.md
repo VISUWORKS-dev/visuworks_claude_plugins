@@ -176,12 +176,15 @@ description: "하네스의 실행 상태 정본 — `.harness/issue-<N>/state.js
 
 ### `agent_type`은 타입이 아니라 "이름 또는 타입"이다
 
-| 호출 | `agent_type`에 오는 값 |
-|---|---|
-| `Agent(subagent_type: "harness:contract-guardian")` | 타입 |
-| `Agent(subagent_type: "harness:integration-qa", name: "qa-1")` | `"qa-1"` — **이름** |
+실측(v2.1.285):
 
-**이름을 주면 타입을 알 방법이 없다.** 그래서 훅은 타입 화이트리스트를 쓰지 않는다 —
+| 호출 | 무엇이 되나 | `agent_type`에 오는 값 |
+|---|---|---|
+| `Agent(subagent_type: "harness:issue-planner")` | 서브에이전트 | `"harness:issue-planner"` — **타입** |
+| `Agent(subagent_type: "harness:implementer", name: "impl-1", isolation: "worktree")` | 서브에이전트 | `"harness:implementer"` — **타입** |
+| `Agent(subagent_type: "harness:integration-qa", name: "qa-1")` (대화형, agent teams 켜짐) | 팀원 | `"qa-1"` — **이름** |
+
+**팀원은 이름으로 오고, 그때는 타입을 알 방법이 없다.** 그래서 훅은 타입 화이트리스트를 쓰지 않는다 —
 **내장 에이전트만 제외하는 블랙리스트**다. 화이트리스트로 거르면 이름으로 호출된 에이전트
 기록이 0건이 된다.
 

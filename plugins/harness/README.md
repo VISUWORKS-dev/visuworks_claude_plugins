@@ -80,7 +80,7 @@ tracked 파일이다. 오케스트레이터·에이전트(모델)와 git hook(�
 
 ```jsonc
 {
-  "model": "opus",                         // Agent·TeamCreate 호출의 model. 생략하면 넣지 않는다
+  "model": "opus",                         // Agent 호출(팀원 포함)의 model. 생략하면 넣지 않는다
   "check_cmd": "make check",               // 전체 검증 (lint + typecheck + test 등)
   "contract_test_cmd": "uv run pytest tests/contract/ -v",  // 계약 테스트 실패 확인
   "src_dirs": ["src/"],                    // 구현자 쓰기 허용
