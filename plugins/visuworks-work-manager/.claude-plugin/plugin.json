@@ -1,7 +1,7 @@
 {
   "name": "visuworks-work-manager",
-  "version": "1.6.0",
-  "description": "비쥬웍스 작업 컨텍스트 관리 플러그인. 정본은 Obsidian vault 하나(obsidian-vault-manager 스킬)이며, Notion은 회의록·팀 공용 문서 작성 전용(visuworks-work-manager 스킬 + 워크스페이스 검색·쿼리 ask 게이트 훅), 보고서 주장을 정의·비판·검증해 Report Spec으로 굳히는 report-thinking 스킬과 그 Spec(또는 원자료: Notion 링크·첨부·대화)을 고정 디자인 시스템의 단일 HTML 문서로 산출하는 report-rendering 스킬을 포함한다. 첨부 파일 보관·자료화(assets), 외부 소통 기록(communications), 프로젝트 자산 인덱스(index.md), 지식 문서 스냅샷(archive), 프로젝트 범위 읽기 제한 포함. vault 경로는 설치 시 입력받으며 repo에 저장되지 않는다.",
+  "version": "1.8.1",
+  "description": "비쥬웍스 작업 컨텍스트 관리 플러그인. 정본은 Obsidian vault(obsidian-vault-manager), Notion은 회의록·공용 문서 전용(visuworks-work-manager). 보고서 주장 정의(report-thinking) → 고정 디자인 HTML 산출(report-rendering), Notion 업무 DB의 이번 주 업무를 연구노트 금주 진행 사항으로 정리(weekly-report) 스킬 포함. 첨부 보관·소통 기록·자산 인덱스·범위 제한 포함. vault 경로는 설치 시 입력받는다.",
   "keywords": [
     "obsidian",
     "notion",
@@ -12,7 +12,9 @@
     "communications",
     "html",
     "document",
-    "handoff"
+    "handoff",
+    "sprint",
+    "weekly-report"
   ],
   "author": {
     "name": "visuworks"
@@ -22,6 +24,24 @@
       "type": "string",
       "title": "Obsidian vault 경로",
       "description": "정본 기록소로 쓸 Obsidian vault의 절대 경로 (예: /Users/me/Documents/MyVault)",
+      "sensitive": false
+    },
+    "weekly_report_work_db_url": {
+      "type": "string",
+      "title": "주간 보고 - 업무 DB URL",
+      "description": "weekly-report 스킬이 쓰는 Notion 업무 DB(예: 2026 업무 DB) URL. 비워두면 스킬 최초 실행 시 물어본다.",
+      "sensitive": false
+    },
+    "weekly_report_notes_db_url": {
+      "type": "string",
+      "title": "주간 보고 - 연구노트(주간 업무 보고) DB URL",
+      "description": "weekly-report 스킬이 금주 진행 사항을 작성할 Notion 연구노트 DB URL. 비워두면 스킬 최초 실행 시 물어본다.",
+      "sensitive": false
+    },
+    "weekly_report_my_name": {
+      "type": "string",
+      "title": "주간 보고 - 본인 표시 이름",
+      "description": "업무 DB 작업자 필드에서 본인을 찾을 때 쓸 Notion 표시 이름. 비워두면 스킬 최초 실행 시 물어본다.",
       "sensitive": false
     }
   }

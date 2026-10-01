@@ -47,9 +47,18 @@
 - 두 스킬 모두 읽기와 산출만 하고 vault·Notion 어디에도 쓰지 않는다.
 - 산출한 HTML을 보관하려면 obsidian-vault-manager로 넘겨 `assets/`에 원본을 둔다.
 
+## 주간 보고 (업무 DB → 연구노트)
+
+- "주간 보고 작성", "이번 주 업무 정리해서 연구노트에" 같은 요청은 `weekly-report`
+  스킬이 담당한다. `2026 업무 DB`에서 이번 주 Sprint·내 업무를 가져와 완료 여부·
+  미완료 사유·Git/Figma 링크를 사용자에게 확인받은 뒤 `연구노트(주간 업무 보고)`의
+  금주 진행 사항에 작성한다.
+- 완료 여부·미완료 사유·산출물 링크는 스킬이 추정하지 않고 항상 사용자에게 묻는다.
+
 ## 공통 원칙
 
 - 저장·기록 요청은 기본적으로 Obsidian vault로(obsidian-vault-manager 스킬).
 - 회의록·팀 공용 문서, "Notion에" 명시 요청만 Notion으로(visuworks-work-manager 스킬).
 - 보고서 주장 정의는 report-thinking, 공유용 HTML 산출은 report-rendering 스킬(둘 다 기록 아님).
+- 주간 보고(업무 DB → 연구노트)는 weekly-report 스킬.
 - 같은 내용을 두 저장소에 중복 기록하지 않는다.
