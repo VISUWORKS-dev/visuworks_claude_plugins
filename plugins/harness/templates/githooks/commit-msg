@@ -1,0 +1,56 @@
+#!/usr/bin/env python3
+r"""커밋 메시지 형식을 강제한다 (Tidy First).
+
+기능 변경은 테스트 목록 ID를 달아야 한다 — 어느 항목을 통과시킨 커밋인지가
+`git log --grep "^\[behavioral\] T"`로 진행 상황의 정본이 된다.
+"""
+import re
+import subprocess
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent))
+from _harness import record, tests_dir  # noqa: E402
+
+PATTERNS = [
+    (re.compile(r"^\[behavioral\] T\d+(,\s*T\d+)*: .+"), "behavioral"),
+    (re.compile(r"^\[structural\] .+"), "structural"),
+    (re.compile(r"^\[handoff\] .+"), "handoff"),
+    (re.compile(r"^\[chore\] .+"), "chore"),
+]
+SKIP = re.compile(r"^(Merge |Revert |fixup!|squash!)")
+
+HELP = """커밋 메시지 형식:
+  [behavioral] T<n>[,T<m>]: 설명   기능 변경. 테스트 목록 ID 필수
+  [structural] 설명                동작 불변 변경 (테스트 디렉터리 변경 금지)
+  [handoff] 설명                   spec 핸드오프
+  [chore] 설명                     설정·도구
+사람이 의도적으로 우회할 때만 --no-verify"""
+
+first = Path(sys.argv[1]).read_text(encoding="utf-8").splitlines()[0].strip()
+
+if SKIP.match(first):
+    sys.exit(0)
+
+kind = next((k for p, k in PATTERNS if p.match(first)), None)
+if kind is None:
+    reason = f"메시지 형식 위반: {first[:60]!r}"
+    record("commit-msg", reason)
+    print(f"커밋 차단 — {reason}\n\n{HELP}", file=sys.stderr)
+    sys.exit(1)
+
+# pre-commit에서는 메시지를 볼 수 없다. 구조 커밋의 테스트 변경 금지를 여기서 검사한다.
+if kind == "structural":
+    staged = subprocess.run(["git", "diff", "--cached", "--name-only"],
+                            capture_output=True, text=True).stdout.split()
+    tdir = tests_dir()
+    tests = [f for f in staged if f.startswith(tdir)]
+    if tests:
+        reason = f"[structural] 커밋이 {tdir}를 변경한다: {', '.join(tests[:5])}"
+        record("commit-msg", reason)
+        print(f"커밋 차단 — {reason}\n\n"
+              "테스트가 바뀌면 그것은 동작 변경이다. [behavioral] T<n>: 으로 커밋한다.",
+              file=sys.stderr)
+        sys.exit(1)
+
+sys.exit(0)

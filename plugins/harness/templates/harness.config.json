@@ -1,0 +1,14 @@
+{
+  "model": "opus",
+  "check_cmd": "make check",
+  "contract_test_cmd": "uv run pytest tests/contract/ -v",
+  "src_dirs": ["src/"],
+  "tests_dir": "tests/",
+  "contract_tests_dir": "tests/contract/",
+  "spec_dir": "docs/specs",
+  "branch_pattern": "<N>-<slug>",
+  "contract_skill": null,
+  "domain_agents": [],
+  "domain_skills": {},
+  "dependency_change": "human"
+}

@@ -10,14 +10,24 @@ visuworks-marketplace/                 ← 이 repo (PUBLIC)
 ├── .claude-plugin/
 │   └── marketplace.json               ← 카탈로그
 └── plugins/
-    └── visuworks-work-manager/        ← 플러그인 (상대경로 소스)
-        ├── .claude-plugin/plugin.json ← userConfig로 vault 경로 입력받음
-        ├── skills/obsidian-vault-manager/SKILL.md   ← 정본(Obsidian) 관리
-        ├── skills/visuworks-work-manager/SKILL.md   ← Notion 회의록·공용 문서
-        ├── hooks/hooks.json
-        ├── scripts/gate-notion-search.sh
-        ├── CLAUDE.md                  ← 각자 프로젝트 루트에 복사하는 템플릿
-        └── README.md
+    ├── visuworks-work-manager/        ← 플러그인 (상대경로 소스)
+    │   ├── .claude-plugin/plugin.json ← userConfig로 vault 경로 입력받음
+    │   ├── skills/obsidian-vault-manager/SKILL.md   ← 정본(Obsidian) 관리
+    │   ├── skills/visuworks-work-manager/SKILL.md   ← Notion 회의록·공용 문서
+    │   ├── hooks/hooks.json
+    │   ├── scripts/gate-notion-search.sh
+    │   ├── CLAUDE.md                  ← 각자 프로젝트 루트에 복사하는 템플릿
+    │   └── README.md
+    └── harness/                       ← 이슈 단위 멀티 에이전트 하네스
+        ├── .claude-plugin/plugin.json
+        ├── skills/                    ← issue-harness(오케스트레이터)·harness-state·verification-protocol·
+        │                                 tdd-cycle·scope-guard·issue-workflow·init(/harness:init)
+        ├── agents/                    ← issue-planner·contract-guardian·implementer·integration-qa
+        ├── hooks/hooks.json           ← SubagentStop → events.jsonl 기록
+        ├── scripts/                   ← record-agent-event.py·check-state.py·init.py
+        ├── templates/                 ← /harness:init이 프로젝트에 까는 원본 (harness.config.json·githooks 등)
+        ├── docs/design.md             ← 분류·결정 근거
+        └── README.md                  ← 설치·harness.config.json 형식
 ```
 
 ## 설치
@@ -27,6 +37,14 @@ visuworks-marketplace/                 ← 이 repo (PUBLIC)
 ```
 활성화하면 Obsidian vault 절대 경로 1개를 입력받는다.
 이 값은 각자 환경에만 저장되고 repo에는 들어가지 않는다.
+
+### harness
+```
+/plugin install harness@visuworks-marketplace
+```
+레포 단위로 켜려면 그 레포의 `.claude/settings.json`에 `extraKnownMarketplaces`·`enabledPlugins`를 넣는다.
+켠 뒤 레포 루트에서 `/harness:init`으로 프로젝트 설정(`.claude/harness.config.json`, git hook 등)을 깐다.
+상세: [`plugins/harness/README.md`](plugins/harness/README.md)
 
 ## 공개 전 확인 (커밋하면 안 되는 것)
 - **실제 vault 경로·Notion URL 금지** — vault 경로는 plugin.json의 userConfig로

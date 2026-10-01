@@ -1,0 +1,60 @@
+#!/usr/bin/env python3
+"""테스트 약화를 차단한다.
+
+통과시키기 어려운 테스트를 지우거나 skip으로 덮으면 검증이 조용히 사라진다.
+사람이 의도적으로 할 때는 --no-verify.
+"""
+import re
+import subprocess
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent))
+from _harness import record, tests_dir  # noqa: E402
+
+# importorskip은 선택 의존성이 없을 때의 정상 패턴이다(조건부 skip).
+# 무조건 skip과 구분한다 — 막으면 기존 테스트가 커밋되지 않는다.
+WEAKEN = re.compile(r"pytest\.mark\.skip|pytest\.skip\(|pytest\.mark\.xfail|@unittest\.skip")
+
+diff = subprocess.run(["git", "diff", "--cached", "--unified=0", "--", tests_dir()],
+                      capture_output=True, text=True).stdout
+
+added_test = removed_test = added_assert = removed_assert = 0
+bad_skip: list[str] = []
+
+for line in diff.splitlines():
+    if line.startswith("+++") or line.startswith("---"):
+        continue
+    if line.startswith("+"):
+        body = line[1:]
+        if re.match(r"\s*(async\s+)?def test_", body):
+            added_test += 1
+        if re.match(r"\s*assert\b", body):
+            added_assert += 1
+        if WEAKEN.search(body):
+            bad_skip.append(body.strip()[:70])
+    elif line.startswith("-"):
+        body = line[1:]
+        if re.match(r"\s*(async\s+)?def test_", body):
+            removed_test += 1
+        if re.match(r"\s*assert\b", body):
+            removed_assert += 1
+
+reasons = []
+if removed_test > added_test:
+    reasons.append(f"테스트 함수 순삭 {removed_test - added_test}개 (삭제 {removed_test} > 추가 {added_test})")
+if bad_skip:
+    reasons.append("skip/xfail 추가: " + "; ".join(bad_skip[:3]))
+if removed_assert > added_assert:
+    reasons.append(f"assert 순삭 {removed_assert - added_assert}줄 (삭제 {removed_assert} > 추가 {added_assert})")
+
+if reasons:
+    joined = " / ".join(reasons)
+    record("pre-commit", joined)
+    print("커밋 차단 — 테스트 약화:", file=sys.stderr)
+    for r in reasons:
+        print(f"  - {r}", file=sys.stderr)
+    print("\n의도한 변경이라면 --no-verify (사람만)", file=sys.stderr)
+    sys.exit(1)
+
+sys.exit(0)

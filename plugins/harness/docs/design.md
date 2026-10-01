@@ -467,22 +467,19 @@ scope/workflow 보충 스킬이다. 원본의 `issue-workflow`·`poc-scope-guard
 구별되지만 모델이 둘 다 트리거할 수 있다. 원본에 남길 도메인 보충은 다른 이름으로 바꾸는 안을
 제안한다 → Q1.
 
-## 9. 질문
+## 9. 결정 (단계 1 승인 시)
 
-- **Q1 — 원본에 남길 도메인 보충 스킬의 이름.** `poc-scope-guard`·`issue-workflow`를 도메인 부분만
-  남겨 같은 이름으로 두면 플러그인의 `harness:scope-guard`·`harness:issue-workflow`와 트리거가 겹친다.
-  예: `<domain>-scope-notes`, `<domain>-issue-order`로 바꾸고 `domain_skills`에서 가리키는 안. 이름을 정해 달라.
-- **Q2 — `demo_blocker` 값.** 범용 플러그인에는 `blocker`/`critical`이 맞는 이름이지만, 바꾸면 원본의
-  옛 `state.json`이 `check-state`에서 거부된다. 유지(설명만 범용화) / 새 이름 + 옛 값 허용 중 어느 쪽인가.
-  설계는 **유지**로 진행한다.
-- **Q3 — `SubagentHandback`.** auto 모드에서는 `last_assistant_message`가 보고가 아니다. 대응안:
-  (a) 지금은 auto 모드를 쓰지 않으므로 README에 한계로 적고 넘어간다 / (b) `PostToolUse`(matcher
-  `SubagentHandback`)로 `tool_input.message`를 기록하고, `SubagentStop`은 그 경우 건너뛴다.
-  (b)는 두 이벤트가 같은 에이전트를 가리키는지 `agent_id`로 맞춰야 하고 실측이 필요하다. 설계는 **(a)**로 진행한다.
-- **Q4 — 원본의 진행 중 이슈.** 전환 시점에 `ACTIVE`가 가리키는 이슈가 끝나지 않았다면 그 이슈의
-  `agents` 키에 옛 이름과 새 이름이 섞인다. 그대로 둬도 되는가.
-- **Q5 — `docs/harness-architecture.html`.** 원본에서 지우고 플러그인 README로 대체 / 원본에 두되
-  6절(경계면)만 남겨 축소 / 그대로 둠. 설계는 **지우고 대체**를 제안한다(이중 정본 방지).
-- **Q6 — `defaultEnabled`.** 매니페스트에 `defaultEnabled: false`를 두면 사용자 범위로 설치해도
-  프로젝트가 `enabledPlugins`로 켠 곳에서만 훅이 돈다. 단 `/plugin install`이 사용자 범위에
-  `enabledPlugins: true`를 쓰면 무력하다(동작 실측 필요). 넣을 것인가.
+| 질문 | 결정 |
+|---|---|
+| Q1 원본에 남길 도메인 보충 스킬 이름 | 플러그인 스킬과 겹치지 않는 이름으로 바꾸고 `domain_skills`에서 가리킨다 |
+| Q2 `demo_blocker` | 값 유지, 설명만 "다음 단계 진행을 막는 결함"으로 범용화 |
+| Q3 `SubagentHandback` | README·`harness-state`에 한계로 적는다. 훅은 `SubagentStop`만 |
+| Q4 원본의 진행 중 이슈 | 끝난 이슈를 가리키던 `ACTIVE`를 넘겼다. 옛 이름은 옛 이슈에만, 새 이름은 새 이슈에만 남는다. 「이슈가 끝나면 `ACTIVE`를 넘기거나 지운다」를 스킬 규칙으로 추가 |
+| Q5 구조도 HTML | 원본에서 지우고 플러그인 README·이 문서로 대체 |
+| Q6 `defaultEnabled` | 넣지 않는다 — 훅은 하네스 밖에서 즉시 빠지므로 프로젝트 한정이 필요 없다 |
+
+### 남은 위험 — 같은 이름의 다른 플러그인
+
+다른 마켓플레이스에 `harness`라는 이름의 플러그인이 있고 함께 설치될 수 있다. 두 플러그인이
+모두 켜지면 `harness:` 접두사를 공유한다. 스킬·에이전트 이름이 겹치지 않으면 공존할 수도 있지만
+문서에 규칙이 없다 — 실측으로 확인한다.
