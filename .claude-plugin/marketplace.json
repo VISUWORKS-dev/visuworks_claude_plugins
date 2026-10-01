@@ -5,7 +5,7 @@
   },
   "metadata": {
     "description": "비쥬웍스 Claude 플러그인 카탈로그",
-    "version": "1.8.1"
+    "version": "1.9.0"
   },
   "plugins": [
     {
@@ -13,6 +13,12 @@
       "source": "./plugins/visuworks-work-manager",
       "description": "비쥬웍스 작업 컨텍스트 관리 플러그인. 정본은 Obsidian vault(obsidian-vault-manager), Notion은 회의록·공용 문서 전용(visuworks-work-manager). 보고서 주장 정의(report-thinking) → 고정 디자인 HTML 산출(report-rendering), Notion 업무 DB의 이번/다음 주 업무를 연구노트 금주·차주 진행 사항으로 정리(weekly-report) 스킬 포함. 첨부 보관·소통 기록·자산 인덱스·범위 제한 포함. vault 경로는 설치 시 입력받는다.",
       "version": "1.8.1"
+    },
+    {
+      "name": "issue-harness",
+      "source": "./plugins/issue-harness",
+      "description": "이슈 = 워크트리 = PR 단위로 계획 → 계약 확정 → 테스트 목록 TDD 구현 → 2단계 검증을 태우는 멀티 에이전트 하네스. 오케스트레이터·상태 정본·역할 에이전트 4종·SubagentStop 기록 훅·커밋 규약 git hook·/issue-harness:init 포함. 프로젝트 값은 .claude/harness.config.json으로 주입한다.",
+      "version": "0.1.0"
     }
   ]
 }

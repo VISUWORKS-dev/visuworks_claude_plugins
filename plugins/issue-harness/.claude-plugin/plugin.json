@@ -1,0 +1,16 @@
+{
+  "name": "issue-harness",
+  "version": "0.1.0",
+  "description": "이슈 = 워크트리 = PR 단위로 계획 → 계약 확정 → 테스트 목록 TDD 구현 → 2단계 검증을 태우는 멀티 에이전트 하네스. 오케스트레이터·상태 정본(state.json/events.jsonl)·역할 에이전트 4종·SubagentStop 기록 훅·커밋 규약 git hook·/issue-harness:init 포함. 프로젝트 값은 .claude/harness.config.json으로 주입한다.",
+  "keywords": [
+    "harness",
+    "orchestration",
+    "tdd",
+    "worktree",
+    "verification",
+    "multi-agent"
+  ],
+  "author": {
+    "name": "visuworks"
+  }
+}
