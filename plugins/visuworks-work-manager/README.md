@@ -13,6 +13,8 @@
   (디자인 없는 low-fi 프리뷰까지만 만들고 최종 HTML은 만들지 않는다)
 - **HTML 산출 (읽기 전용)**: Report Spec 또는 원자료 → 공유용 단일 HTML 문서 →
   `report-rendering` 스킬 (어디에도 기록하지 않는다. 문서를 만들어 전달만 한다)
+- **주간 보고**: `2026 업무 DB`의 이번 주 Sprint·내 업무 → 완료 여부·사유·산출물 링크
+  확인 → `연구노트(주간 업무 보고)` 금주 진행 사항 작성 → `weekly-report` 스킬
 
 ## 구성
 - `skills/obsidian-vault-manager/SKILL.md` — Obsidian vault 관리 스킬 (정본)
@@ -47,14 +49,36 @@
   - 절차: 수집 → 구조화 → **목차 승인 게이트** → 조립 → 검증 → 전달
   - 파일명: `{프로젝트}_{문서명}_{버전}_{YYYYMMDD}.html`
   - vault·Notion에 쓰지 않는다 (기록 요청은 obsidian-vault-manager로 넘김)
-- `hooks/hooks.json` + `scripts/gate-notion-search.sh` — 워크스페이스 검색·쿼리 → 사용자 인가(ask) 게이트 (Cowork 전용)
+- `skills/weekly-report/SKILL.md` — 업무 DB → 연구노트 금주/차주 진행 사항 작성 스킬
+  - 대상 DB: 업무 DB(이름/작업자/Sprint/시작·종료날짜/프로젝트 relation, 완료
+    속성 없음) → 연구노트(주차별 페이지 + 금주/차주 진행 사항·이슈사항·공유사항)
+  - **최초 1회 설정 → 이후 재사용**: DB URL·본인 계정 식별은 userConfig
+    (`weekly_report_work_db_url`/`weekly_report_notes_db_url`/`weekly_report_my_name`)에
+    없으면 스킬을 처음 쓸 때 한 번만 묻고 `.omc/state/weekly-report.json`에
+    캐시해, 대화가 바뀌어도 다시 묻지 않는다(`self` 계정 ID와 업무 DB person
+    필드 mention ID가 다를 수 있어 이름 대조로 확정)
+  - Sprint는 `YYYY-M-주차` 형식으로 이번 주·다음 주 값을 계산해 필터링
+  - 완료 여부·미완료 사유는 스키마에 없고 캐시 대상도 아니므로 **매 실행 확인**
+    (가능하면 AskUserQuestion 항목별 질문, 사유·요약은 자유 서술)
+  - 다음 주 Sprint가 아직 미확정인 업무는 목록을 보여주고 차주 편입 여부를
+    선택받아, 편입 시 업무 DB의 Sprint(+ 필요 시 담당자)를 갱신
+  - 업무를 프로젝트 relation 기준으로 묶어 `[프로젝트명]` 헤더로 작성, 연구노트
+    Multi-select 속성도 등장한 프로젝트에 맞춰 갱신
+  - 이슈사항·공유사항은 한 번에 같이 확인, 각 섹션은 목록 외 추가 작성 여부도 확인
+  - 해당 주차 연구노트 페이지가 없으면 기존 페이지 템플릿 구조를 따라 새로 생성
+  - Git Issue/PR·Figma 등 링크는 사용자가 준 것만 채움(검색·추측 금지)
+  - 정리한 내용은 작성 전 사용자 승인 게이트를 거침
+- `hooks/hooks.json` + `scripts/gate-notion-search.sh` — 워크스페이스 검색·쿼리 → 사용자 인가(ask) 게이트 (Cowork 전용, weekly-report의 DB 내 필터 쿼리도 포함)
 - `CLAUDE.md` — 각자 Cowork 프로젝트 루트에 복사해 두는 "항상 로드" 읽기 절차 템플릿
 
 ## 설치 시 입력받는 값 (userConfig)
 - `obsidian_vault_path` — 정본 기록소 Obsidian vault 절대 경로
+- `weekly_report_work_db_url` — (선택) weekly-report 업무 DB URL, 비워두면 최초 실행 시 질문
+- `weekly_report_notes_db_url` — (선택) weekly-report 연구노트 DB URL, 비워두면 최초 실행 시 질문
+- `weekly_report_my_name` — (선택) weekly-report에서 본인을 찾을 Notion 표시 이름, 비워두면 최초 실행 시 질문
 
 값은 각자 환경에만 저장되고 공개 repo에는 들어가지 않는다.
-SKILL.md는 이를 `${user_config.obsidian_vault_path}`로 참조한다.
+SKILL.md는 이를 `${user_config.obsidian_vault_path}` 형태로 참조한다.
 
 ## 훅 확인
 설치 후 Cowork에서 `/hooks`로 `matcher`("mcp__.*notion.*(search|query).*")가 실제 Notion
