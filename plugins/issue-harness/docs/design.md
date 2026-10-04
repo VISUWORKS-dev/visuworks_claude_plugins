@@ -500,3 +500,20 @@ scope/workflow 보충 스킬이다. 원본의 `issue-workflow`·`poc-scope-guard
 | 다른 플러그인과 함께 | 사용자 범위의 다른 플러그인(OMC, 기존 Notion 게이트 플러그인)이 켜진 세션에서도 1줄 |
 | 같은 이름의 다른 플러그인 | `--plugin-dir`로 로드하면 사용자 범위에 설치된 같은 이름 `harness` 플러그인이 로드 목록에서 빠졌다 → 이름을 `issue-harness`로 바꿨다(9절) |
 | 팀원 보고 기록 (`PostToolUse`(`SendMessage`) 추가 후) | 팀원에게 작업 2회 → `message`(보고 원문, `to: team-lead`)·`subagent`(맺음말)가 번갈아 4줄. 오케스트레이터가 팀원에게 보낸 후속 지시는 0줄(`agent_id` 없음). 서브에이전트 1줄, 격리 구현자 + `SendMessage` 재개 2줄로 회귀 없음 |
+
+## 11. 커밋 규약 — 팀 전역 커밋 템플릿으로 변경
+
+처음 규약은 `[behavioral] T<n>:` / `[structural]` / `[handoff]` / `[chore]`였다. 팀의 전역 커밋 템플릿
+(`<타입> : <제목>`, 타입 feat·fix·docs·test·refact·style·chore)과 달라서, 템플릿대로 쓴 메시지가 훅에 막혔다.
+전역 템플릿에 맞췄다. 하네스에 필요한 것만 템플릿의 꼬릿말 자리에 둔다.
+
+| 이전 | 지금 |
+|---|---|
+| `[behavioral] T3,T4: …` | `feat : …` (버그면 `fix`) + 꼬릿말 `Tests: T3,T4` — 필수 |
+| `[structural] …` | `refact : …` / `style : …` — 테스트 디렉터리 변경 금지 |
+| `[handoff] …` (spec) | `docs : …` |
+| `[handoff] …` (계약 테스트) | `test : …` |
+| `[chore] …` | `chore : …` |
+
+진행 정본은 `git log --grep "^Tests: T"`다. 훅은 정리되지 않은 주석 줄(`#`·`;`)을 건너뛴다 —
+전역 템플릿이 `;`를 주석 문자로 쓰기 때문이다(`core.commentChar`).

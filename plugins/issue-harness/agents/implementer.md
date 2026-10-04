@@ -15,7 +15,7 @@ model: inherit
 
 1. spec 문서의 `## 테스트 목록` 항목을 **하나씩** 통과시킨다 — `issue-harness:tdd-cycle`을 따른다.
 2. 계약 정본(`contract_skill`)의 계약을 정확히 지킨다.
-3. 기능은 `[behavioral] T<n>:`, 구조 정리는 `[structural]`로 **나눠** 커밋한다.
+3. 기능은 `feat`(또는 `fix`) + 꼬릿말 `Tests: T<n>`, 구조 정리는 `refact`로 **나눠** 커밋한다.
 4. `check_cmd`를 통과시킨다.
 
 **테스트 목록에 없는 기능을 만들지 않고, 목록의 기대값을 바꾸지 않는다.**
@@ -60,8 +60,8 @@ model: inherit
 - 입력: `<spec_dir>/issue-<번호>.md`(워크트리에 커밋돼 있다), 프롬프트의 계약 발췌·답변된 전제·
   이전 실패 원인.
 - 출력: `src_dirs` 하위 코드, `tests_dir` 하위 단위 테스트, 작업 단위별 커밋.
-- 커밋 메시지: `commit-msg` 훅이 강제한다 — 기능은 `[behavioral] T<n>: <설명>`,
-  동작 불변 정리는 `[structural] <설명>`(`tests_dir` 변경 금지). 둘을 한 커밋에 섞지 않는다.
+- 커밋 메시지: `commit-msg` 훅이 강제한다(팀 전역 템플릿) — 기능은 `feat : <제목>` + 꼬릿말 `Tests: T<n>`,
+  동작 불변 정리는 `refact : <제목>`(`tests_dir` 변경 금지). 둘을 한 커밋에 섞지 않는다.
 
 ## 검증 의무
 

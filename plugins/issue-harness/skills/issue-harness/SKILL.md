@@ -235,11 +235,11 @@ Agent(
 
 **실행 모드: 에이전트 팀**
 
-**`2c-handoff-commit`** — spec만 `[handoff]` 커밋 (`issue-harness:issue-workflow` 3절).
+**`2c-handoff-commit`** — spec만 `docs :` 커밋 (`issue-harness:issue-workflow` 3절).
 
 ```bash
 git add <spec_dir>/issue-<N>.md
-git commit -m "[handoff] 이슈 #<N> spec — 테스트 목록 <n>항목"
+git commit -m "docs : 이슈 #<N> spec — 테스트 목록 <n>항목"
 ```
 
 **워크트리로 가는 것은 셋이다.**
@@ -428,7 +428,7 @@ spec도 계약 테스트도 없는 워크트리가 된다.
    머지 조건·이유·"머지 전 계약 테스트 실패는 정상"은 **`issue-harness:issue-workflow` 8절이 정본이다.**
    ```bash
    git switch <이슈브랜치>
-   git merge --no-ff <워크트리브랜치> -m "[chore] 워크트리 브랜치를 이슈 브랜치에 반영한다 (#<N>)"
+   git merge --no-ff <워크트리브랜치> -m "chore : 워크트리 브랜치를 이슈 브랜치에 반영한다 (#<N>)"
    <check_cmd>
    ```
 

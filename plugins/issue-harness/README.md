@@ -7,7 +7,7 @@
 - 상태 정본: `.harness/issue-<N>/state.json`(오케스트레이터만 씀) + `events.jsonl`(훅만 append)
 - 구현자는 `isolation: worktree` 서브에이전트, 모듈 묶음마다 오케스트레이터가 "go"
 - 검증은 무컨텍스트 → 컨텍스트 2단계, 계약 테스트는 QA가 먼저 쓴다
-- 커밋 규약(`[behavioral] T<n>:` 등)과 테스트 약화 차단은 git hook이 강제
+- 커밋 규약(팀 전역 템플릿 `<타입> : <제목>` + 기능 커밋의 `Tests: T<n>` 꼬릿말)과 테스트 약화 차단은 git hook이 강제
 
 설계와 결정 근거: [`docs/design.md`](docs/design.md)
 
@@ -84,7 +84,7 @@ tracked 파일이다. 오케스트레이터·에이전트(모델)와 git hook(�
   "check_cmd": "make check",               // 전체 검증 (lint + typecheck + test 등)
   "contract_test_cmd": "uv run pytest tests/contract/ -v",  // 계약 테스트 실패 확인
   "src_dirs": ["src/"],                    // 구현자 쓰기 허용
-  "tests_dir": "tests/",                   // pre-commit 약화 검사·[structural] 금지 대상
+  "tests_dir": "tests/",                   // pre-commit 약화 검사·refact/style 커밋의 변경 금지 대상
   "contract_tests_dir": "tests/contract/", // integration-qa 소유
   "spec_dir": "docs/specs",                // spec = <spec_dir>/issue-<N>.md
   "branch_pattern": "<N>-<slug>",          // 이슈 브랜치 이름 규칙
