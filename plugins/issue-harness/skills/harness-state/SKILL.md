@@ -316,7 +316,7 @@ JSON 전체를 읽어 해당 키만 바꾸고 다시 쓴다.
 **테스트 목록 진행 상황은 커밋 로그가 정본이다.** `state.json`의 `test_list`는 요약이다:
 
 ```bash
-git log --oneline --grep "^\[behavioral\] T"    # 완료된 항목
+git log --oneline --grep "^Tests: T"    # 완료된 항목 (기능 커밋 꼬릿말)
 ```
 
 ### 스키마 검사 — 문서가 아니라 검사가 지킨다

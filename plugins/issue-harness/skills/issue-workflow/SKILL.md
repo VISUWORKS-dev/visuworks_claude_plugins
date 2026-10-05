@@ -45,11 +45,11 @@ description: "작업 단위 규약 — GitHub 이슈 = 워크트리 = PR. 이슈
 워크트리는 **커밋 기준의 깨끗한 체크아웃**이다. 커밋되지 않은 파일과 gitignore된 파일은
 따라오지 않는다.
 
-**spec은 tracked다.** `[handoff]` 커밋으로 올리면 워크트리에 그대로 따라온다:
+**spec은 tracked다.** `docs :` 커밋으로 올리면 워크트리에 그대로 따라온다:
 
 ```bash
 git add <spec_dir>/issue-<N>.md
-git commit -m "[handoff] 이슈 #<N> spec — 테스트 목록 <n>항목"
+git commit -m "docs : 이슈 #<N> spec — 테스트 목록 <n>항목"
 ```
 
 **런타임 상태(`.harness/`)는 gitignore되어 따라오지 않는다.** 구현자는 상태 파일을
@@ -61,7 +61,7 @@ git commit -m "[handoff] 이슈 #<N> spec — 테스트 목록 <n>항목"
 
 ```bash
 git add <전달할 파일>
-git commit -m "[handoff] 이슈 #<번호> <전달 내용>"
+git commit -m "docs : 이슈 #<번호> <전달 내용>"   # 계약 테스트 전달이면 test :
 ```
 
 ## 4. 워크트리 생성 · 구현자 실행
@@ -122,17 +122,19 @@ Claude Code 워크트리는 gitignore된 의존성 설치 디렉터리(가상환
 **`commit-msg` 훅이 강제한다** — 형식이 틀리면 커밋이 막힌다:
 
 ```
-[behavioral] T<n>[,T<m>]: <한 줄>    기능 변경. 테스트 목록 ID 필수
-[structural] <한 줄>                 동작 불변 변경. tests_dir 변경 금지
-[handoff] <한 줄>                    spec 핸드오프 (오케스트레이터)
-[chore] <한 줄>                      설정·도구
+<타입> : <제목>      팀 전역 커밋 템플릿 형식
+  feat · fix         기능 변경·버그 수정 — 꼬릿말 `Tests: T<n>[,T<m>]` 필수
+  refact · style     동작 불변 정리·서식 — tests_dir 변경 금지
+  docs               spec 핸드오프 (오케스트레이터)
+  test               계약 테스트 핸드오프 (오케스트레이터)
+  chore              설정·도구·로컬 머지
 ```
 
 **기능과 구조를 한 커밋에 섞지 않는다**(Tidy First). 섞이면 리뷰에서 "동작이 바뀐 것인가"를
 판단할 수 없고, 되돌릴 때 함께 날아간다. 상세: `issue-harness:tdd-cycle`
 
 - **작업 단위로 커밋한다.** 테스트 목록 항목 여러 개를 한 커밋에 묶을 수 있다
-  (`[behavioral] T1,T2: ...`). 단 **모듈 묶음(오케스트레이터가 한 번에 보낸 단위)을 넘어서 묶지 않는다** —
+  (꼬릿말 `Tests: T1,T2`). 단 **모듈 묶음(오케스트레이터가 한 번에 보낸 단위)을 넘어서 묶지 않는다** —
   3c 검증과 되돌리기가 그 단위로 일어난다.
 - **테스트를 약화시키는 커밋은 `pre-commit` 훅이 막는다** — 테스트 함수 순삭, `skip`/`xfail`
   추가, `assert` 순삭. 의도한 것이면 사람이 터미널에서 `--no-verify`를 쓴다.
@@ -182,20 +184,20 @@ primary를 찾아 거기에만 쓴다(`issue-harness:harness-state`). 정본은 
 머지 조건 — **완료 알림·종료 기록만으로 머지하지 않는다.** "끝났다"만 뜻하고
 "성공했다"가 아니다(`issue-harness:harness-state`). 셋을 확인한다:
 
-1. 워크트리에 `[behavioral]` 커밋이 있는가 (`git -C <워크트리> log --grep "^\[behavioral\]"`)
+1. 워크트리에 기능 커밋이 있는가 (`git -C <워크트리> log --grep "^Tests: T"`)
 2. `blockers`에 `resolved: false`가 없는가
 3. 테스트 목록 항목이 전부 `pass`인가
 
 ```bash
 # 1. 이슈 브랜치에서 워크트리 브랜치를 머지
 git switch <이슈브랜치>
-git merge --no-ff <워크트리브랜치> -m "[chore] 워크트리 브랜치를 이슈 브랜치에 반영한다 (#<번호>)"
+git merge --no-ff <워크트리브랜치> -m "chore : 워크트리 브랜치를 이슈 브랜치에 반영한다 (#<번호>)"
 
 # 2. **머지 후 primary에서 상통합 검증** — 여기가 유일하게 양쪽이 합쳐진 지점이다
 <check_cmd>
 ```
 
-**커밋 메시지에 `merge:` 접두를 쓰지 마라** — `commit-msg` 훅이 거부한다. `[chore]`로 쓴다.
+**커밋 메시지에 `merge:` 접두를 쓰지 마라** — `commit-msg` 훅이 거부한다. `chore :`로 쓴다.
 
 `check_cmd`가 실패하면 **push하지 않고 고친다.** 워크트리에서 통과한 것은 구현
 검증이고, 상통합 검증이 아니다 — 워크트리가 갈라진 뒤 이슈 브랜치에 들어간 것과의 결합은

@@ -235,11 +235,12 @@ Agent(
 
 **실행 모드: 에이전트 팀**
 
-**`2c-handoff-commit`** — spec만 `[handoff]` 커밋 (`issue-harness:issue-workflow` 3절).
+**`2c-handoff-commit`** — spec을 `docs :`로 커밋한다 (`issue-harness:issue-workflow` 3절).
+계약 테스트는 `3a-test` 뒤에 `test :`로 따로 커밋한다(아래).
 
 ```bash
 git add <spec_dir>/issue-<N>.md
-git commit -m "[handoff] 이슈 #<N> spec — 테스트 목록 <n>항목"
+git commit -m "docs : 이슈 #<N> spec — 테스트 목록 <n>항목"
 ```
 
 **워크트리로 가는 것은 셋이다.**
@@ -261,6 +262,14 @@ git commit -m "[handoff] 이슈 #<N> spec — 테스트 목록 <n>항목"
 비결정적 출력의 내용(생성된 문안의 품질 등)은 assert하지 않는다.
 QA가 쓰는 이유는 구현자가 쓰면 자기 설계에 맞춘 테스트가 되기 때문이다.
 반드시 `contract_test_cmd`로 실패를 확인하고 `3b`로 넘긴다. 상세: `issue-harness:verification-protocol`.
+
+실패를 확인하면 **`3b` 전에 오케스트레이터가 계약 테스트를 커밋한다** — 워크트리는 현재 HEAD에서
+갈라지므로, 커밋하지 않으면 구현자에게 계약 테스트가 가지 않는다. `integration-qa`는 커밋하지 않는다.
+
+```bash
+git add <contract_tests_dir>
+git commit -m "test : 이슈 #<N> 계약 테스트 — <n>건 (실패 확인)"
+```
 
 `3a`가 끝나기 전에 `3b`를 시작하지 않는다 (`issue-harness:harness-state` 전이 규칙 4번).
 
@@ -428,7 +437,7 @@ spec도 계약 테스트도 없는 워크트리가 된다.
    머지 조건·이유·"머지 전 계약 테스트 실패는 정상"은 **`issue-harness:issue-workflow` 8절이 정본이다.**
    ```bash
    git switch <이슈브랜치>
-   git merge --no-ff <워크트리브랜치> -m "[chore] 워크트리 브랜치를 이슈 브랜치에 반영한다 (#<N>)"
+   git merge --no-ff <워크트리브랜치> -m "chore : 워크트리 브랜치를 이슈 브랜치에 반영한다 (#<N>)"
    <check_cmd>
    ```
 
