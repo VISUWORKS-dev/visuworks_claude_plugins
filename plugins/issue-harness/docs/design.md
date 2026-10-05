@@ -126,7 +126,7 @@ git hook·check-state(스크립트)가 같은 값을 읽어야 하고, 둘 다 �
   "check_cmd": "make check",             // 4c·4e·tdd-cycle의 전체 검증
   "contract_test_cmd": "uv run pytest tests/contract/ -v",   // 3a-test 실패 확인
   "src_dirs": ["src/"],                  // implementer 쓰기 허용
-  "tests_dir": "tests/",                 // pre-commit 약화 검사·[structural] 금지 대상
+  "tests_dir": "tests/",                 // pre-commit 약화 검사·refact/style 커밋의 변경 금지 대상
   "contract_tests_dir": "tests/contract/", // integration-qa 소유
   "spec_dir": "docs/specs",              // spec 경로 = <spec_dir>/issue-<N>.md
   "branch_pattern": "<N>-<slug>",        // 이슈 브랜치 이름 규칙 (설명용 문자열)
