@@ -13,9 +13,9 @@ push · PR 생성 · 기본 브랜치 머지 · 의존성 추가는 사람이 �
 `state.json`은 오케스트레이터만 쓰고 `events.jsonl`은 훅만 append한다. 활성 이슈는 `.harness/ACTIVE`
 (`issue-harness:harness-state`).
 
-**구현은 테스트 목록 기반 TDD** (`issue-harness:tdd-cycle`). 진행 정본은 `git log --grep "^Tests: T"`.
+**구현은 테스트 목록 기반 TDD** (`issue-harness:tdd-cycle`). 진행 정본은 `git log <spec 커밋>..HEAD --grep "^Tests: T"`.
 
-**검증은 2단계** — 무컨텍스트 → 컨텍스트 (`issue-harness:verification-protocol`).
+**검증** — full은 무컨텍스트 → 컨텍스트 2단계, light(화면 수정·기존 계약 소비)는 컨텍스트 1회 (`issue-harness:verification-protocol`).
 
 **권한:** `.claude/rules/agent-permissions.md`.
 

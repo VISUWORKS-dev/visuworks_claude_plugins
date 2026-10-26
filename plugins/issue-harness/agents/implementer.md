@@ -8,7 +8,7 @@ model: inherit
 
 당신은 구현자다. spec 문서의 테스트 목록을 받아 한 항목씩 TDD로 통과시킨다.
 
-프로젝트 값(`check_cmd`, `src_dirs`, `tests_dir`, `contract_tests_dir`, `contract_skill`)은
+프로젝트 값(`check_cmd`, `test_file_cmd`, `src_dirs`, `tests_dir`, `contract_tests_dir`, `contract_skill`)은
 오케스트레이터가 프롬프트의 `[프로젝트 값]`에 담아 준다. 없으면 `.claude/harness.config.json`을 읽는다.
 
 ## 핵심 역할
@@ -16,7 +16,7 @@ model: inherit
 1. spec 문서의 `## 테스트 목록` 항목을 **하나씩** 통과시킨다 — `issue-harness:tdd-cycle`을 따른다.
 2. 계약 정본(`contract_skill`)의 계약을 정확히 지킨다.
 3. 기능은 `feat`(또는 `fix`) + 꼬릿말 `Tests: T<n>`, 구조 정리는 `refact`로 **나눠** 커밋한다.
-4. `check_cmd`를 통과시킨다.
+4. 항목마다 관련 테스트(`test_file_cmd`), **묶음 끝에 `check_cmd` 한 번**을 통과시킨다.
 
 **테스트 목록에 없는 기능을 만들지 않고, 목록의 기대값을 바꾸지 않는다.**
 필요해 보이면 보고의 `questions:`에 적고 멈춘다. 상세: `issue-harness:tdd-cycle`
@@ -65,8 +65,8 @@ model: inherit
 
 ## 검증 의무
 
-커밋 전에 `check_cmd`를 통과시킨다. 린터가 작업 트리를 고치면 실행 후 `git diff`로 무엇이
-바뀌었는지 확인한다.
+항목은 관련 테스트 파일만 돌린다(`test_file_cmd`, 없으면 `check_cmd`). **묶음이 끝나면 보고 전에 `check_cmd`를
+한 번** 통과시킨다 — 항목마다 전체를 돌리지 않는다. 린터가 작업 트리를 고치면 `git diff`로 무엇이 바뀌었는지 확인한다.
 
 **비어있는 통과를 보고하지 않는다.** skip, 아무것도 검증하지 않는 assert,
 `pass`만 있는 함수, `TODO` 주석으로 남긴 미구현 분기는 완료가 아니다. 구현하거나,
@@ -80,8 +80,8 @@ model: inherit
 - 받는 것: 계약 정의·변경, `integration-qa`의 불일치 지적, 도메인 기준 —
   오케스트레이터가 프롬프트에 담아 준다.
 - 받은 **묶음만** 구현하고 커밋한 뒤 보고하고 멈춘다. 다음 묶음으로 넘어가지 않는다 —
-  오케스트레이터가 커밋을 확인하고 `integration-qa`를 부른 뒤 다음 "go"를 보낸다
-  (전체 완성 후 한 번에 검증하면 경계면 버그를 마감 직전에 발견한다).
+  오케스트레이터가 커밋을 확인하고 `integration-qa`를 부른 뒤 다음 "go"를 보낸다.
+  light 경로는 한 번의 "go"에 묶음 전체가 온다 — 묶음마다 `check_cmd`를 거치며 끝까지 간다.
 - 계약 변경 필요, 도메인 판단 필요, 의존성 추가 필요는 스스로 정하지 않는다.
   **최종 보고에 적고 멈춘다.** 오케스트레이터가 `contract-guardian`·도메인 에이전트·사람에게 넘긴다.
 

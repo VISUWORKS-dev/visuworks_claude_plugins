@@ -1,6 +1,16 @@
 {
   "model": "opus",
+  "models": {
+    "plan": "opus",
+    "contract": "opus",
+    "verify_spec": "opus",
+    "implement": "sonnet",
+    "qa": "sonnet",
+    "verify_blind": "sonnet",
+    "explore": "haiku"
+  },
   "check_cmd": "make check",
+  "test_file_cmd": "uv run pytest -q {files}",
   "contract_test_cmd": "uv run pytest tests/contract/ -v",
   "src_dirs": ["src/"],
   "tests_dir": "tests/",

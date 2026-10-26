@@ -4,9 +4,12 @@
 멀티 에이전트 하네스. 경계면 불일치를 마감 직전이 아니라 모듈 완성 직후에 잡는 것이 목표다.
 
 - 작업 단위: GitHub 이슈 = 워크트리 = PR
-- 상태 정본: `.harness/issue-<N>/state.json`(오케스트레이터만 씀) + `events.jsonl`(훅만 append)
-- 구현자는 `isolation: worktree` 서브에이전트, 모듈 묶음마다 오케스트레이터가 "go"
-- 검증은 무컨텍스트 → 컨텍스트 2단계, 계약 테스트는 QA가 먼저 쓴다
+- 진행 정본은 git 로그(spec·계약 테스트·`Tests: T<n>` 커밋·머지 커밋). `.harness/issue-<N>/state.json`은
+  사람 질문·블로커·인계만(오케스트레이터만 씀), `events.jsonl`은 경과(훅만 append)
+- 구현자는 `isolation: worktree` 서브에이전트, 모듈 묶음마다 오케스트레이터가 "go". 항목마다 관련 테스트만, 묶음 끝에 `check_cmd` 1회
+- 경로 둘: **full**(계약 신설·변경) — 계약 테스트 선작성, 무컨텍스트 → 컨텍스트 2단계 검증.
+  **light**(화면 수정·기존 계약 소비) — 계약 단계·`3c`·무컨텍스트 검증 생략, 컨텍스트 검증 1회
+- 역할별 모델(`models`) — 계획·계약·컨텍스트 검증 opus, 구현·QA·무컨텍스트 검증 sonnet, 탐색 haiku
 - 커밋 규약(팀 전역 템플릿 `<타입> : <제목>` + 기능 커밋의 `Tests: T<n>` 꼬릿말)과 선언 없는 테스트 삭제·변경 차단은 git hook이 강제
 
 설계와 결정 근거: [`docs/design.md`](docs/design.md)
@@ -80,8 +83,18 @@ tracked 파일이다. 오케스트레이터·에이전트(모델)와 git hook(�
 
 ```jsonc
 {
-  "model": "opus",                         // Agent 호출(팀원 포함)의 model. 생략하면 넣지 않는다
-  "check_cmd": "make check",               // 전체 검증 (lint + typecheck + test 등)
+  "model": "opus",                         // models에 없는 호출(도메인 에이전트 등)의 model. 생략하면 넣지 않는다
+  "models": {                              // 역할별 model. 없는 키는 model로 간다
+    "plan": "opus",                        // issue-planner
+    "contract": "opus",                    // contract-guardian
+    "verify_spec": "opus",                 // 4b 컨텍스트 검증
+    "implement": "sonnet",                 // implementer — haiku 금지(재시도 1회가 check_cmd 1회)
+    "qa": "sonnet",                        // 3a-test·3c
+    "verify_blind": "sonnet",              // 4a 무컨텍스트 검증
+    "explore": "haiku"                     // 오케스트레이터의 탐색용 Agent(Explore 등)
+  },
+  "check_cmd": "make check",               // 전체 검증 (lint + typecheck + test 등). 묶음 끝·4c·4e
+  "test_file_cmd": "uv run pytest -q {files}",  // 항목별 부분 테스트. {files}에 테스트 파일 경로. 없으면 check_cmd
   "contract_test_cmd": "uv run pytest tests/contract/ -v",  // 계약 테스트 실패 확인
   "src_dirs": ["src/"],                    // 구현자 쓰기 허용
   "tests_dir": "tests/",                   // 테스트 변경 선언 검사·refact/style 커밋의 변경 금지 대상
