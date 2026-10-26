@@ -57,7 +57,7 @@ cat .claude/harness.config.json
 판정이 애매하면 full이다. light 진행 중 계약 변경이 필요해지면 full로 올린다(`issue-harness:harness-state` 전이 규칙 6).
 
 **작은 이슈** — 테스트 목록이 3항목 이하·묶음 1개로 예상되면 `issue-planner`를 부르지 않고 오케스트레이터가 spec을
-직접 쓴다. 형식·테스트 목록 규약은 `issue-harness:issue-planner` 정의를 그대로 따르고, 승인 게이트(`2b`)는 생략하지 않는다.
+직접 쓴다. 입력(부모 이슈·GLOSSARY·ADR)·형식·테스트 목록 규약은 `issue-harness:issue-planner` 정의를 그대로 따르고, 승인 게이트(`2b`)는 생략하지 않는다.
 
 ## 에이전트
 
@@ -118,8 +118,14 @@ cat .harness/issue-<N>/state.json
 ### Phase 1: 준비
 
 1. 이슈 번호 확정. 불명확하면 `gh issue list`로 확인하고 묻는다.
-2. `gh issue view <N>` — 언급된 연관 이슈도 읽는다. **경로(full/light)를 정한다.**
-3. 선행 이슈 — `domain_skills.workflow`가 있으면 의존 순서를 본다. 선행 계약이 미확정이면 사용자에게 확인한다.
+2. `gh issue view <N> --json title,body,parent,blockedBy` — 언급된 연관 이슈도 읽는다. `parent`가 있으면
+   부모 스펙 이슈 본문도 읽는다(`gh issue view <parent.number> --json body` — `parent`에는 본문이 없다).
+   그 뒤 **경로(full/light)를 정한다.**
+3. 선행 이슈 — `blockedBy`에 열린 이슈가 있으면 사용자에게 확인한다. `domain_skills.workflow`가 있으면 의존 순서도 본다.
+   선행 계약이 미확정이면 사용자에게 확인한다.
+   이슈가 모호하고 스킬 목록에 `mattpocock-skills:` 접두 스킬(예: `mattpocock-skills:tdd`)이 보이면
+   `AskUserQuestion`으로 [`/mattpocock-skills:grill-with-docs` 먼저 / 그대로 진행]을 묻는다. grill은 사람만 실행할 수
+   있으므로 먼저를 고르면 멈춘다. 보이지 않으면 묻지 않는다.
 4. 이슈 브랜치 확인·생성 (`branch_pattern`).
 5. `_workspace/` 생성 (갱신 실행이면 기존 것을 `_workspace_<타임스탬프>/`로 옮긴다).
 6. `state.json` 초기화, `ACTIVE` 기록.
@@ -156,7 +162,7 @@ Agent(
 **`2c-handoff-commit`** — 승인 뒤에만 커밋한다. 이 커밋이 "승인됨"의 기록이다.
 
 ```bash
-git add <spec_dir>/issue-<N>.md
+git add <spec_dir>/issue-<N>.md   # grill 등으로 바뀐 GLOSSARY.md·docs/adr/가 있으면 함께 — 워크트리는 커밋만 받는다
 git commit -m "docs : 이슈 #<N> spec — 테스트 목록 <n>항목"
 ```
 
@@ -283,7 +289,10 @@ git merge --no-ff <워크트리브랜치> -m "chore : 워크트리 브랜치를 
      gh pr create --base <기본 브랜치> --title "..." --body-file <경로>
    ```
 3. `ACTIVE`를 넘기거나 지운다.
-4. "결과나 팀 구성에서 바꾸고 싶은 점이 있나요?" — 강요하지 않는다.
+4. 스킬 목록에 `mattpocock-skills:` 접두 스킬이 보이면 push 전 이슈 브랜치에서 `/mattpocock-skills:code-review`,
+   같은 세션에서 `/mattpocock-skills:retro`를 안내한다(retro는 이 대화 맥락으로 회고한다).
+   PR 본문은 팀 `pr-writing`을 따른다(`mattpocock-skills:pr`을 쓰지 않는다).
+5. "결과나 팀 구성에서 바꾸고 싶은 점이 있나요?" — 강요하지 않는다.
 
 ## 에러 핸들링
 
