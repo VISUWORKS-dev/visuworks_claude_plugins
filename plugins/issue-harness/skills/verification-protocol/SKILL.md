@@ -146,7 +146,7 @@ description: "하네스의 2단계 검증과 계약 TDD 규약 — 무컨텍스�
 
 | 경로 | 쓰는 주체 | 내용 |
 |---|---|---|
-| `contract_tests_dir` | **`integration-qa`** | 계약·경계면 테스트 |
+| `contract_tests_dir` | **`integration-qa`** | 계약·경계면 테스트 — 경계면당 왕복 1개. 화면·기능 테스트는 넣지 않는다 |
 | `tests_dir` 나머지 | `implementer` | 단위 테스트 |
 | `src_dirs` | `implementer` | 제품 코드 |
 
