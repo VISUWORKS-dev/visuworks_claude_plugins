@@ -540,13 +540,18 @@ KMTPA 레포(2026-10-26)에서 테스트가 제품 코드의 2.5배(함수 967�
 고치기)는 통과시켰다. 운영 중 차단 기록은 정상 대체 커밋뿐이었다.
 
 - 훅은 판단하지 않고 **선언 여부만** 본다. 대상은 함수 단위로 AST를 비교해 찾는다 — 삭제된 테스트 함수,
-  사라지거나 바뀐 검사 문장(`assert`·`pytest.raises`·`pytest.warns`·데코레이터·parametrize 케이스),
-  새 `skip`/`xfail`(함수·모듈 수준). 같은 이름·같은 검사 문장으로 다른 파일에 옮긴 함수는 제외한다.
+  사라지거나 바뀐 검사 문장(`assert` 조건·`pytest.raises`·`pytest.warns`·parametrize 케이스), 추가·삭제된
+  마커(데코레이터·`pytestmark`), 본문·모듈 수준의 새 `skip`/`xfail`. 같은 이름·같은 검사 문장·같은 마커로 다른
+  파일에 옮긴 함수는 제외한다. assert 메시지는 판정에 영향이 없어 보지 않는다.
+- 마커는 종류를 가리지 않는다. `skipif`처럼 조건부여도 조건 안에 약화를 숨길 수 있고, 마커 변수
+  (`needs_db = pytest.mark.skipif(...)`)로 빼면 이름만으로는 skip인지 알 수 없다. 새 테스트의 마커는 보지 않는다.
+- pytest 기본 수집 규칙(`test_*.py`·`*_test.py`, `Test*` 클래스, `test*` 함수) 밖의 테스트는 없는 것으로 센다 —
+  파일·클래스 이름만 바꿔 테스트를 끄는 경로를 막는다. pytest 설정에서 수집 규칙을 바꾼 프로젝트는 훅의 `COLLECTED`를 맞춘다.
 - 의도한 변경이면 꼬릿말 `Test-Change: <대상> — <사유>`로 선언한다. 메시지를 봐야 하므로
   `pre-commit`이 아니라 `commit-msg`에서 검사한다.
 - 선언이 타당한지는 사람과 에이전트를 구분할 수 없는 훅이 아니라 4b 검증과 사람 리뷰가 대조한다.
   선언된 변경은 `git log --grep "^Test-Change:"`로 전부 드러난다.
-- `--no-verify`가 필요 없어졌다. `permissions.deny`의 `--no-verify` 차단은 그대로 둔다.
+- `--no-verify`가 필요 없어졌다. 차단 메시지에서도 안내하지 않는다. `permissions.deny`의 `--no-verify` 차단은 그대로 둔다.
 - 이미 init한 프로젝트: `.githooks/commit-msg`를 새 템플릿으로 바꾸고 `.githooks/pre-commit`을 지운다.
   init은 기존 파일을 건너뛰므로 사람이 옮긴다.
-- 시나리오 검사: `tests/githooks_scenarios.sh <githooks 디렉터리>`
+- 시나리오 검사: `tests/githooks_scenarios.sh <githooks 디렉터리>`. `PY=/usr/bin/python3`로 macOS 기본 3.9도 확인한다

@@ -1,7 +1,8 @@
 #!/bin/bash
-# commit-msg Test-Change 게이트 시나리오. 인자: githooks 디렉터리
-H=$1; R=$(mktemp -d); cd $R; git init -q; mkdir -p .githooks tests
+# commit-msg Test-Change 게이트 시나리오. 인자: githooks 디렉터리. PY=/usr/bin/python3 로 인터프리터 지정
+H=$(cd "$1" && pwd) || exit 9; R=$(mktemp -d); cd $R; git init -q; mkdir -p .githooks tests
 cp $H/commit-msg $H/_harness.py .githooks/; chmod +x .githooks/commit-msg; git config core.hooksPath .githooks
+[ -n "$PY" ] && sed -i.bak "1s|.*|#!$PY|" .githooks/commit-msg
 git config core.quotePath true; git config user.email t@t; git config user.name t
 cat > tests/test_a.py <<'P'
 import pytest
@@ -97,4 +98,22 @@ rep 'C = [1, 2]' 'C = [1, 2, 3]'; git add -A; expect ok "변수 parametrize 추�
 rep 'argvalues=[1, 2]' 'argvalues=[1, 2, 3]'; git add -A; expect ok "키워드 parametrize 추가" "test : 케이스"
 # 19 같은 assert 중복 하나 삭제
 rep $'    assert 1\n    assert 1\n' $'    assert 1\n'; git add -A; expect block "중복 assert 하나 삭제" "test : 중복"
-echo "pass=$pass fail=$fail"; rm -rf $R
+# 20 assert 메시지만 추가
+rep 'assert f() == 115' 'assert f() == 115, "값"'; git add -A; expect ok "assert 메시지 추가" "test : 메시지"
+# 21 수집 규칙 밖으로 — 클래스 이름 / 파일 이름
+rep 'class TestK:' 'class Helper:'; git add -A; expect block "클래스 이름을 Test* 밖으로" "test : 이름"
+git mv tests/test_a.py tests/helpers.py; expect block "파일 이름을 test_*.py 밖으로" "test : 이름"
+# 22 마커 변수 — 정의만 / 기존 테스트에 적용
+rep 'C = [1, 2]' $'C = [1, 2]\nneeds = pytest.mark.skipif(True, reason="x")'; git add -A; expect ok "마커 변수 정의만" "test : 마커"
+python3 - <<'Q'
+p='tests/test_a.py';s=open(p).read().replace("def test_keep","needs = pytest.mark.skipif(True, reason='x')\n@needs\ndef test_keep",1);open(p,'w').write(s)
+Q
+git add -A; expect block "기존 테스트에 마커 변수 적용" "test : 마커"
+# 23 새 테스트의 skipif / 다른 파일로 옮기며 skip
+printf '@pytest.mark.skipif(True, reason="x")\ndef test_new2():\n    assert 1\n' >> tests/test_a.py; git add -A; expect ok "새 테스트 skipif" "test : 새"
+python3 - <<'Q'
+s=open('tests/test_a.py').read(); blk="def test_value():\n    assert f() == 115\n"
+open('tests/test_a.py','w').write(s.replace(blk,"")); open('tests/test_b.py','w').write("import pytest\n@pytest.mark.skip\n"+blk)
+Q
+git add -A; expect block "다른 파일로 옮기며 skip" "test : 이동"
+echo "pass=$pass fail=$fail"; rm -rf $R; [ $fail = 0 ]
