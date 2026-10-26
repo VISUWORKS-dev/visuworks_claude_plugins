@@ -22,7 +22,6 @@ COPIES = [
     ("harness.config.json", ".claude/harness.config.json", False, True),
     ("agent-permissions.md", ".claude/rules/agent-permissions.md", False, False),
     ("githooks/commit-msg", ".githooks/commit-msg", True, False),
-    ("githooks/pre-commit", ".githooks/pre-commit", True, False),
     ("githooks/_harness.py", ".githooks/_harness.py", False, False),
 ]
 DENY = ["Bash(git commit --no-verify*)", "Bash(git commit -n *)"]
@@ -106,7 +105,7 @@ if not hp:
     if not DRY:
         git("config", "--local", "core.hooksPath", ".githooks")
 elif (root / hp).resolve() != (root / ".githooks").resolve():
-    notes.append(f"core.hooksPath가 {hp!r}다 — .githooks의 commit-msg·pre-commit이 돌지 않는다. 직접 정한다")
+    notes.append(f"core.hooksPath가 {hp!r}다 — .githooks의 commit-msg가 돌지 않는다. 직접 정한다")
 
 # 5. CLAUDE.md — 쓰지 않는다. 조각만 안내
 cm = root / "CLAUDE.md"

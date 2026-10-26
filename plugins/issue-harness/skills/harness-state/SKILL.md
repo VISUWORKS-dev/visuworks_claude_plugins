@@ -144,7 +144,7 @@ description: "하네스의 실행 상태 정본 — `.harness/issue-<N>/state.js
 // 팀원이 보고를 보냈을 때 (SendMessage)
 {"at":"...","source":"message","agent":"qa","agent_id":"aqa-…","cwd":"...","to":"team-lead","msg":"result: pass\n..."}
 // git hook이 커밋을 막았을 때
-{"at":"...","source":"githook","hook":"pre-commit","event":"commit_blocked","reason":"skip/xfail 추가: ..."}
+{"at":"...","source":"githook","hook":"commit-msg","event":"commit_blocked","reason":"선언 없이 지우거나 바꾼 테스트 2개"}
 ```
 
 `msg`는 **최종 보고 원문 전체**다. 훅은 파싱하지 않는다 — 형식이 어긋나도 기록은 남고,

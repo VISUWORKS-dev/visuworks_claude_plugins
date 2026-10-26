@@ -5,12 +5,19 @@ r"""커밋 메시지 형식을 강제한다 — 팀 전역 커밋 템플릿 규�
 꼬릿말: 기능 변경(feat·fix)은 테스트 목록 ID를 단다 — `Tests: T3,T4`.
 어느 항목을 통과시킨 커밋인지가 `git log --grep "^Tests: T"`로 진행 상황의 정본이 된다.
 동작 불변 정리(refact·style)는 테스트 디렉터리를 바꿀 수 없다 (Tidy First).
+기존 테스트를 없애거나 바꾸면 꼬릿말로 대상과 사유를 선언한다 — `Test-Change: <대상> — <사유>`.
+훅은 선언 여부만 본다. 선언이 타당한지는 검증(4b)과 사람 리뷰가 대조한다.
 """
+from __future__ import annotations  # macOS 기본 python3(3.9)에서 `X | None` 표기
+
+import ast
 import re
+from collections import Counter
 import subprocess
 import sys
 from pathlib import Path
 
+sys.dont_write_bytecode = True  # .githooks/__pycache__가 생겨 커밋에 섞이지 않게
 sys.path.insert(0, str(Path(__file__).parent))
 from _harness import record, tests_dir  # noqa: E402
 
@@ -20,6 +27,13 @@ TESTS_FOOTER = re.compile(r"^Tests: T\d+(,\s*T\d+)*\s*$")
 SKIP = re.compile(r"^(Merge |Revert |fixup!|squash!)")
 # 템플릿 주석 문자가 사람마다 다를 수 있다(core.commentChar). 정리되지 않은 주석 줄은 건너뛴다.
 COMMENT = re.compile(r"^\s*[#;]")
+CHANGE_FOOTER = re.compile(r"^Test-Change:\s*(\S+)\s+[—-]+\s*\S")
+# importorskip은 선택 의존성이 없을 때의 정상 패턴이다(조건부 skip). 무조건 skip과 구분한다.
+WEAKEN = re.compile(r"pytest\.mark\.skip|pytest\.skip\(|pytest\.mark\.xfail|pytest\.xfail\(|unittest\.skip")
+CHECK_CALLS = ("pytest.raises", "pytest.warns")
+# ponytail: pytest 기본 파일 수집 규칙만 본다. pytest 설정에서 python_files를 바꾼 프로젝트는 이 정규식을 맞춘다.
+# 클래스는 이름으로 거르지 않는다 — TestCase 하위 클래스·부모 클래스의 테스트도 돈다. 클래스 이름 변경은 한정이름이 바뀌어 잡힌다
+COLLECTED = re.compile(r"(^|/)(test_[^/]*|[^/]*_test)\.py$")
 
 HELP = """커밋 메시지 형식 (팀 전역 커밋 템플릿):
   <타입> : <제목>      타입 = feat | fix | docs | test | refact | style | chore
@@ -27,7 +41,8 @@ HELP = """커밋 메시지 형식 (팀 전역 커밋 템플릿):
   본문 (선택)
   (빈 줄)
   Tests: T<n>[,T<m>]   feat·fix는 필수 — 통과시킨 테스트 목록 ID
-refact·style은 테스트 디렉터리를 바꿀 수 없다. 사람이 의도적으로 우회할 때만 --no-verify"""
+  Test-Change: <대상> — <사유>   기존 테스트를 지우거나 바꿨을 때 대상마다 1줄
+refact·style은 테스트 디렉터리를 바꿀 수 없다."""
 
 
 def block(reason: str, extra: str = HELP) -> None:
@@ -36,30 +51,200 @@ def block(reason: str, extra: str = HELP) -> None:
     sys.exit(1)
 
 
+def git(*args: str) -> subprocess.CompletedProcess:
+    return subprocess.run(["git", *args], capture_output=True, text=True)
+
+
+def parametrize_cases(d: ast.expr, consts: dict[str, ast.expr]) -> set[str] | None:
+    """parametrize 데코레이터면 케이스마다 하나. 케이스 추가는 약화가 아니고 삭제·변경만 걸린다."""
+    if not (isinstance(d, ast.Call) and ast.unparse(d.func).endswith("mark.parametrize")):
+        return None
+    kw = {k.arg: k.value for k in d.keywords}
+    names = d.args[0] if d.args else kw.get("argnames")
+    values = d.args[1] if len(d.args) > 1 else kw.get("argvalues")
+    if isinstance(values, ast.Name):  # 모듈 수준 상수로 뺀 케이스 목록
+        values = consts.get(values.id, values)
+    if names is None or not isinstance(values, (ast.List, ast.Tuple)):
+        return None
+    return {f"parametrize({ast.unparse(names)}): {ast.unparse(c)}" for c in values.elts}
+
+
+Test = tuple[Counter, Counter, str]  # (검사 문장, 적용된 마커, 함수 소스)
+
+
+def pytestmark(n: ast.stmt) -> ast.expr | None:
+    """`pytestmark = …`(타입 주석·`+=` 포함)의 값. 그 범위의 테스트 전부에 붙는 마커다."""
+    targets = n.targets if isinstance(n, ast.Assign) else [n.target] if isinstance(n, (ast.AnnAssign, ast.AugAssign)) else []
+    return n.value if any(isinstance(t, ast.Name) and t.id == "pytestmark" for t in targets) else None
+
+
+def marker_def(n: ast.stmt) -> bool:
+    """`needs_db = pytest.mark.skipif(...)` — 정의만으로는 아무 테스트도 건너뛰지 않는다. 안에 skip 호출을 숨기면 아니다."""
+    v = ast.unparse(n.value) if isinstance(n, (ast.Assign, ast.AnnAssign)) and n.value else ""
+    return v.startswith("pytest.mark.") and not re.search(r"pytest\.(skip|xfail)\(", v)
+
+
+def test_funcs(src: str) -> tuple[dict[str, Test], bool] | None:
+    """`{한정이름: Test}`, 모듈 수준 skip 여부. 파싱 실패면 None — 비교할 수 없으므로 호출자가 막는다."""
+    try:
+        tree = ast.parse(src)
+    except SyntaxError:
+        return None
+    consts = {t.id: n.value for n in tree.body if isinstance(n, (ast.Assign, ast.AnnAssign)) and n.value
+              for t in (n.targets if isinstance(n, ast.Assign) else [n.target]) if isinstance(t, ast.Name)}
+    funcs: dict[str, Test] = {}
+    module_skip = False
+
+    def mark(e: ast.expr) -> str:
+        """마커 변수(`@needs_db`)는 정의로 바꿔 센다 — 정의만 바꿔 skip으로 만드는 것도 마커 변경이다."""
+        seen = set()  # `a = b`, `b = a` 순환 방지
+        while isinstance(e, ast.Name) and e.id in consts and e.id not in seen:
+            seen.add(e.id)
+            e = consts[e.id]
+        return ast.unparse(e)
+
+    def split_decos(decos: list[ast.expr]) -> tuple[Counter, Counter]:
+        """(parametrize 케이스, 그 밖의 마커). 케이스는 추가가 허용되고 마커는 추가·삭제 모두 선언 대상이다."""
+        cases: Counter = Counter()
+        marks: Counter = Counter()
+        for d in decos:
+            c = parametrize_cases(d, consts)
+            if c is None:
+                marks[mark(d)] += 1
+            else:
+                cases.update(c)
+        return cases, marks
+
+    def visit(body: list[ast.stmt], prefix: str, cases: Counter, marks: Counter) -> None:
+        nonlocal module_skip
+        for v in filter(None, map(pytestmark, body)):
+            marks = marks + Counter(map(mark, v.elts if isinstance(v, (ast.List, ast.Tuple)) else [v]))
+        for node in body:
+            if isinstance(node, ast.ClassDef):
+                c, m = split_decos(node.decorator_list)
+                visit(node.body, f"{prefix}{node.name}.", cases + c, marks + m)
+            elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                if node.name.startswith("test"):
+                    c, m = split_decos(node.decorator_list)
+                    checks = Counter(ast.unparse(n.test) for n in ast.walk(node) if isinstance(n, ast.Assert))
+                    checks.update(ast.unparse(n) for n in ast.walk(node)
+                                  if isinstance(n, ast.Call) and ast.unparse(n.func) in CHECK_CALLS)
+                    funcs[prefix + node.name] = (checks + c + cases, m + marks, ast.unparse(node))
+            # 마커 정의(`needs_db = pytest.mark.skipif(...)`)와 pytestmark는 테스트에 붙은 마커로 잡힌다
+            elif (not prefix and not pytestmark(node) and not marker_def(node)
+                  and WEAKEN.search(ast.unparse(node))):
+                module_skip = True
+
+    visit(tree.body, "", Counter(), Counter())
+    return funcs, module_skip
+
+
+def weakened(old: Test, new: Test) -> bool:
+    """검사 문장이 빠졌거나, 마커가 바뀌었거나, 본문에 skip/xfail이 생겼다. assert 메시지는 보지 않는다."""
+    return (bool(old[0] - new[0]) or old[1] != new[1]
+            or bool(WEAKEN.search(new[2]) and not WEAKEN.search(old[2])))
+
+
+def tests_at(rev: str, path: str) -> tuple[dict[str, Test], bool] | None:
+    """수집 대상 파일이 아니면(`helpers.py`) 그 안의 테스트는 돌지 않으므로 없는 것과 같다."""
+    return test_funcs(git("show", f"{rev}:{path}").stdout) if COLLECTED.search(path) else ({}, False)
+
+
+def staged(*args: str) -> list[str]:
+    """`-z` 출력 — 기본값 `core.quotePath=true`면 비ASCII 경로가 따옴표로 감싸져 나온다."""
+    return [f for f in git("diff", "--cached", "-z", *args).stdout.split("\0") if f]
+
+
+def changed_tests(tdir: str) -> tuple[list[str], list[str]]:
+    """스테이징된 변경에서 지워졌거나 약해졌을 수 있는 테스트 `<경로>::<한정이름>` 목록, 해석하지 못한 파일 목록."""
+    f = staged("--name-status", "-M", "--", tdir)
+    pairs = []  # (변경 전 경로 | None, 변경 후 경로 | None)
+    i = 0
+    while i < len(f):
+        st = f[i]
+        if st[0] in "RC":
+            pairs.append((f[i + 1] if st[0] == "R" else None, f[i + 2]))
+            i += 3
+            continue
+        pairs.append((None if st == "A" else f[i + 1], None if st == "D" else f[i + 1]))
+        i += 2
+    pairs = [(a, b) for a, b in pairs if (a or b or "").endswith(".py")]
+
+    after = {b: tests_at("", b) for _, b in pairs if b}
+    unreadable = [b for b, r in after.items() if r is None]  # 스테이징된 쪽이 깨졌으면 비교할 수 없다
+    movable = {p: r[0] for p, r in after.items() if r and not r[1]}  # 이동 후보: 해석됐고 모듈 skip 없는 파일
+    hits = []
+    for a, b in pairs:
+        if not a or (b and after[b] is None):
+            continue
+        before, (new, new_skip) = tests_at("HEAD", a), after[b] if b else ({}, False)
+        path = b or a
+        # HEAD 쪽만 못 읽으면(깨진 채 커밋됨, 훅 Python보다 새 문법) 파일 단위로 선언받는다 — 고치거나 지울 길은 남긴다
+        if before is None:
+            hits.append(f"{path}::*")
+            continue
+        old, old_skip = before
+        if new_skip and not old_skip:
+            hits.append(f"{path}::*")
+        for q, t in old.items():
+            if q in new:
+                if weakened(t, new[q]):
+                    hits.append(f"{path}::{q}")
+            # 다른 파일로 옮긴 것만 이동이다 — 같은 한정이름, 검사 문장·마커 그대로.
+            # 같은 파일의 다른 클래스나 클래스 이름 변경은 이동이 아니다
+            elif all(weakened(t, fs[q]) for p, fs in movable.items() if p != b and q in fs):
+                hits.append(f"{a}::{q}")
+    return hits, unreadable
+
+
+def declared(target: str, decls: set[str]) -> bool:
+    path, q = target.split("::", 1)
+    return bool({target, f"{path}::*", q, q.rsplit(".", 1)[-1]} & decls)
+
+
 lines = [ln.rstrip() for ln in Path(sys.argv[1]).read_text(encoding="utf-8").splitlines()
          if not COMMENT.match(ln)]
 lines = [ln for ln in lines if ln.strip()] or [""]
 first = lines[0].strip()
 
-if SKIP.match(first):
+# 머지는 각 커밋에서 이미 검사했다 — 기본 브랜치를 머지할 때 그쪽 테스트 정리가 다시 걸리면 안 된다
+if first.startswith("Merge "):
     sys.exit(0)
 
-m = TITLE.match(first)
-if not m:
-    block(f"제목 형식 위반: {first[:60]!r}")
-kind = m.group(1)
+# fixup!·squash!·Revert는 제목 규칙만 건너뛴다. autosquash는 훅을 다시 돌리지 않으므로 테스트 검사는 여기서 한다
+kind = None
+if not SKIP.match(first):
+    m = TITLE.match(first)
+    if not m:
+        block(f"제목 형식 위반: {first[:60]!r}")
+    kind = m.group(1)
 
 if kind in ("feat", "fix") and not any(TESTS_FOOTER.match(ln.strip()) for ln in lines[1:]):
     block(f"{kind} 커밋에 'Tests: T<n>' 꼬릿말이 없다")
 
-# pre-commit에서는 메시지를 볼 수 없다. 동작 불변 커밋의 테스트 변경 금지를 여기서 검사한다.
+# 테스트 검사는 메시지를 봐야 하므로 pre-commit이 아니라 여기서 한다.
 if kind in ("refact", "style"):
-    staged = subprocess.run(["git", "diff", "--cached", "--name-only"],
-                            capture_output=True, text=True).stdout.split()
     tdir = tests_dir()
-    tests = [f for f in staged if f.startswith(tdir)]
+    tests = [f for f in staged("--name-only") if f.startswith(tdir)]
     if tests:
         block(f"{kind} 커밋이 {tdir}를 변경한다: {', '.join(tests[:5])}",
               "테스트가 바뀌면 그것은 동작 변경이다. feat 또는 fix로, 'Tests: T<n>' 꼬릿말을 달아 커밋한다.")
+
+decls = {m.group(1) for ln in lines[1:] if (m := CHANGE_FOOTER.match(ln.strip()))}
+hits, unreadable = changed_tests(tests_dir())
+if unreadable:
+    v = f"{sys.version_info.major}.{sys.version_info.minor}"
+    block(f"테스트 파일을 해석하지 못함: {', '.join(unreadable[:5])}",
+          f"문법 오류가 있거나, 훅을 실행하는 Python({v})이 이 문법을 모른다. 비교할 수 없으므로 막는다.\n"
+          "문법 오류를 고치거나, PATH의 python3를 프로젝트 버전 이상으로 맞춘다. Test-Change 선언으로는 통과하지 않는다.")
+missing = [t for t in hits if not declared(t, decls)]
+if missing:
+    shown = "\n".join(f"  Test-Change: {t} — <사유 또는 대체 테스트 ID>" for t in missing[:20])
+    more = f"\n  … 외 {len(missing) - 20}개" if len(missing) > 20 else ""
+    block(f"선언 없이 지우거나 바꾼 테스트 {len(missing)}개",
+          "기존 테스트를 지웠거나 이름(파일 test_*.py·클래스·함수 test*)을 바꿨거나, 검사 문장(assert 조건·pytest.raises·\n"
+          "parametrize 케이스)을 지웠거나, 마커(데코레이터·pytestmark)를 바꿨거나, 본문에 skip/xfail을 더했다.\n"
+          "의도한 변경이면 커밋 메시지 꼬릿말에 대상마다 선언한다 (파일 전체는 <경로>::*):\n"
+          f"{shown}{more}")
 
 sys.exit(0)
