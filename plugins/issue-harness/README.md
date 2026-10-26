@@ -54,6 +54,22 @@
 }
 ```
 
+### 업그레이드
+
+```
+claude plugin marketplace update visuworks-marketplace
+claude plugin update issue-harness@visuworks-marketplace
+```
+
+Claude Code를 재시작한 뒤, 하네스를 쓰는 레포마다 `/issue-harness:init`을 다시 실행한다 —
+훅·설정은 프로젝트에 깔린 사본이라 플러그인 업데이트만으로는 바뀌지 않는다
+([기존 프로젝트 업그레이드](skills/init/SKILL.md#기존-프로젝트-업그레이드)).
+
+- **진행 중인 이슈는 끝낸 뒤 업그레이드한다.** 0.2.0에서 `state.json` 스키마가 바뀌었다(진행 지점은 git 로그로 복원).
+  옛 형식(`phase` 키)의 `state.json`은 새 오케스트레이터가 이어받지 못한다 — init이 경고한다
+- 새 설정 키 `models`·`test_file_cmd`는 생략해도 된다. 넣으면 역할별로 싼 모델을 쓰고 항목마다 관련 테스트만 돌려
+  검증 비용이 준다(아래 [`harness.config.json`](#claudeharnessconfigjson))
+
 ### 개발 중 로컬 로드
 
 ```
