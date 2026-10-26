@@ -116,4 +116,34 @@ s=open('tests/test_a.py').read(); blk="def test_value():\n    assert f() == 115\
 open('tests/test_a.py','w').write(s.replace(blk,"")); open('tests/test_b.py','w').write("import pytest\n@pytest.mark.skip\n"+blk)
 Q
 git add -A; expect block "다른 파일로 옮기며 skip" "test : 이동"
+# 24 TestCase 하위 클래스·부모 클래스(이름이 Test*가 아님)의 테스트도 센다
+printf 'import unittest\nclass Base:\n    def test_b(self):\n        assert self.v == 2\nclass MyCase(unittest.TestCase):\n    def test_y(self):\n        assert 1\n' > tests/test_u.py; git add -A; git commit -qm "test : u"; BASE=$(git rev-parse HEAD)
+python3 -c "p='tests/test_u.py';s=open(p).read();open(p,'w').write(s.replace('    def test_y(self):\n        assert 1\n','    pass\n'))"; git add -A; expect block "TestCase 하위 클래스 테스트 삭제" "test : u"
+python3 -c "p='tests/test_u.py';s=open(p).read();open(p,'w').write(s.replace('assert self.v == 2','assert True'))"; git add -A; expect block "부모 클래스 테스트 완화" "test : u"
+# 25 타입 주석 pytestmark / 대입문 형태 모듈 skip
+rep 'class TestK:' $'class TestK:\n    pytestmark: list = [pytest.mark.skip]'; git add -A; expect block "타입 주석 pytestmark" "test : m"
+rep 'import pytest' $'import pytest\n_ = pytest.skip("x", allow_module_level=True)'; git add -A; expect block "대입문 모듈 skip" "test : m"
+# 26 마커 변수 정의만 바꿔 skip으로
+printf 'import pytest\nneeds = pytest.mark.skipif(False, reason="x")\n@needs\ndef test_n():\n    assert 1\n' > tests/test_n.py; git add -A; git commit -qm "test : n"; BASE=$(git rev-parse HEAD)
+python3 -c "p='tests/test_n.py';s=open(p).read();open(p,'w').write(s.replace('skipif(False, ','skip('))"; git add -A; expect block "마커 변수 정의를 skip으로" "test : n"
+# 27 같은 파일 다른 클래스의 같은 이름 / 모듈 skip 파일로 이동
+printf 'class TestA:\n    def test_e(self):\n        assert 1\nclass TestB:\n    def test_e(self):\n        assert 1\n' > tests/test_d.py; git add -A; git commit -qm "test : d"; BASE=$(git rev-parse HEAD)
+python3 -c "p='tests/test_d.py';s=open(p).read();open(p,'w').write(s.replace('class TestB:\n    def test_e(self):\n        assert 1\n',''))"; git add -A; expect block "같은 이름 다른 클래스 삭제" "test : d"
+python3 - <<'Q'
+s=open('tests/test_a.py').read(); blk="def test_value():\n    assert f() == 115\n"
+open('tests/test_a.py','w').write(s.replace(blk,"")); open('tests/test_b.py','w').write("import pytest\npytest.skip('x', allow_module_level=True)\n"+blk)
+Q
+git add -A; expect block "모듈 skip 파일로 이동" "test : 이동"
+# 28 스테이징된 쪽을 해석 못 하면 선언으로도 통과 안 함 (새 파일 포함)
+printf 'def test_keep(:\n' > tests/test_a.py; git add -A; expect block "문법 오류로 수정" "$(printf 'test : x\n\nTest-Change: tests/test_a.py::* — x')"
+printf 'def test_z(:\n' > tests/test_z.py; git add -A; expect block "문법 오류 새 파일" "test : x"
+# 29 HEAD 쪽만 깨졌으면 파일 단위 선언으로 고치거나 지울 수 있다
+printf 'def test_br(:\n' > tests/test_br.py; git add -A; git commit -qn -m "test : 깨진 파일"; BASE=$(git rev-parse HEAD)
+printf 'def test_br():\n    assert 1\n' > tests/test_br.py; git add -A; expect block "깨진 파일 수정 선언 없음" "test : 고침"
+printf 'def test_br():\n    assert 1\n' > tests/test_br.py; git add -A; expect ok "깨진 파일 수정 ::* 선언" "$(printf 'test : 고침\n\nTest-Change: tests/test_br.py::* — 문법 오류 수정')"
+git rm -q tests/test_br.py; expect ok "깨진 파일 삭제 ::* 선언" "$(printf 'test : 삭제\n\nTest-Change: tests/test_br.py::* — 문법 오류 파일 삭제')"
+# 30 마커 변수 — 타입 주석 정의·두 단계 별칭 / skip 호출을 숨긴 마커 정의
+printf 'import pytest\nbase: object = pytest.mark.skipif(False, reason="x")\nneeds = base\n@needs\ndef test_al():\n    assert 1\n' > tests/test_al.py; git add -A; git commit -qm "test : al"; BASE=$(git rev-parse HEAD)
+python3 -c "p='tests/test_al.py';s=open(p).read();open(p,'w').write(s.replace('skipif(False, ','skip('))"; git add -A; expect block "두 단계 별칭 정의를 skip으로" "test : al"
+rep 'import pytest' $'import pytest\nm = pytest.mark.skip(pytest.skip("x", allow_module_level=True))'; git add -A; expect block "마커 정의에 skip 호출 숨김" "test : m"
 echo "pass=$pass fail=$fail"; rm -rf $R; [ $fail = 0 ]

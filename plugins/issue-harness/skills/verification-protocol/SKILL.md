@@ -80,6 +80,9 @@ description: "하네스의 2단계 검증과 계약 TDD 규약 — 무컨텍스�
 - spec 문서의 완료 조건이 실제로 충족되는가
 - 이슈 커밋의 `Test-Change:` 꼬릿말마다 사유가 맞는가 — 대체 테스트가 실제로 같은 동작을 검사하는가
   (`git log <기본 브랜치>.. --grep "^Test-Change:"`)
+- 훅이 보지 않는 테스트 약화가 diff에 있는가 — 빈 parametrize, `__test__ = False`·테스트 클래스의 `__init__`,
+  autouse fixture·conftest의 `pytest.skip`, assert 앞의 `return`, `from pytest import raises`·`skip` 별칭,
+  조건부 skip의 조건 변경, conftest 마커 변수 정의 변경, 테스트 클래스에서 `TestCase`·부모 클래스 상속 제거
 
 **마지막 두 항목이 핵심이다.** 명세와 구현이 갈라진 지점이고,
 어느 쪽이 틀렸는지는 임의로 정하지 말고 근거와 함께 보고한다.
