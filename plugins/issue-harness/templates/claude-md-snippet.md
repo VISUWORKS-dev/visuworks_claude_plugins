@@ -21,4 +21,4 @@ push · PR 생성 · 기본 브랜치 머지 · 의존성 추가는 사람이 �
 
 **커밋 메시지는 `commit-msg` 훅이 강제한다(팀 전역 커밋 템플릿):** 제목 `<타입> : <제목>`
 (feat·fix·docs·test·refact·style·chore), 기능 커밋(feat·fix)은 꼬릿말 `Tests: T<n>` 필수,
-refact·style은 테스트 변경 금지. 테스트 약화는 `pre-commit`이 막는다.
+refact·style은 테스트 변경 금지. 기존 테스트를 지우거나 바꾸면 꼬릿말 `Test-Change: <대상> — <사유>` 필수.

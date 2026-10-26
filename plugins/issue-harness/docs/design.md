@@ -81,8 +81,8 @@
 |---|---|---|
 | `.claude/hooks/record-agent-event.py` | **코어** | `hooks/hooks.json`의 `SubagentStop` → `scripts/record-agent-event.py`. **`Stop` 분기는 뺀다**(4절) |
 | `.claude/hooks/check-state.py` | **코어** | `scripts/check-state.py`. `SUB_STAGES`는 `harness-state` 스킬 표와 1:1 — 둘 다 플러그인에 있어 한 곳에서 바뀐다. v1 이관 스크립트 언급은 뺀다(원본 레포 로컬 파일) |
-| `.githooks/commit-msg`·`pre-commit`·`_harness.py` | **코어 원본, 설정으로 배포** | 플러그인 `templates/githooks/`에 원본을 두고 init이 프로젝트 `.githooks/`로 복사한다. `core.hooksPath`에 플러그인 캐시 경로를 직접 걸 수 없다 — 캐시 경로에 버전이 들어가 업데이트마다 바뀐다(manifest-reference: "Each version has its own cache directory"). `tests/` 하드코딩 → `harness.config.json`의 `tests_dir`를 읽는다(없으면 `tests/`) |
-| `pre-commit`의 `importorskip` 허용 주석 | 코어(규칙) + 도메인(사례) | 규칙 "조건부 skip(`importorskip`)은 무조건 skip과 구분한다"만 남기고 원본 테스트 파일명은 뺀다 |
+| `.githooks/commit-msg`·`_harness.py` | **코어 원본, 설정으로 배포** | 플러그인 `templates/githooks/`에 원본을 두고 init이 프로젝트 `.githooks/`로 복사한다. `core.hooksPath`에 플러그인 캐시 경로를 직접 걸 수 없다 — 캐시 경로에 버전이 들어가 업데이트마다 바뀐다(manifest-reference: "Each version has its own cache directory"). `tests/` 하드코딩 → `harness.config.json`의 `tests_dir`를 읽는다(없으면 `tests/`) |
+| `commit-msg`의 `importorskip` 허용 주석 | 코어(규칙) + 도메인(사례) | 규칙 "조건부 skip(`importorskip`)은 무조건 skip과 구분한다"만 남기고 원본 테스트 파일명은 뺀다 |
 | `Makefile` `check-state` 타깃 | **삭제** (원본에서) | 스킬이 `${CLAUDE_PLUGIN_ROOT}`로 직접 실행한다. 사람이 터미널에서 돌릴 경로는 README에 적는다 |
 
 ### 1.4 설정 파일
@@ -112,7 +112,7 @@
 | 대안 | 기각 이유 |
 |---|---|
 | 플러그인 `userConfig` | 사람마다 다른 값용이다(설치자 로컬 저장). 프로젝트 값을 여기 두면 팀원마다 따로 입력하고 갈라진다 |
-| `CLAUDE.md` 산문 | git hook(`pre-commit`의 `tests_dir`)·`check-state.py`가 읽을 수 없다. 기계가 읽는 값과 사람이 읽는 규약은 다른 곳에 둔다 |
+| `CLAUDE.md` 산문 | git hook(`commit-msg`의 `tests_dir`)·`check-state.py`가 읽을 수 없다. 기계가 읽는 값과 사람이 읽는 규약은 다른 곳에 둔다 |
 | 스킬마다 프로젝트 오버라이드 스킬 | 값 하나 바꾸려고 스킬 본문을 복제하게 된다. 플러그인 업데이트와 갈라진다 |
 
 **결정적 이유는 소비자에 Python 스크립트가 있다는 것이다.** 오케스트레이터·에이전트(모델)와
@@ -126,7 +126,7 @@ git hook·check-state(스크립트)가 같은 값을 읽어야 하고, 둘 다 �
   "check_cmd": "make check",             // 4c·4e·tdd-cycle의 전체 검증
   "contract_test_cmd": "uv run pytest tests/contract/ -v",   // 3a-test 실패 확인
   "src_dirs": ["src/"],                  // implementer 쓰기 허용
-  "tests_dir": "tests/",                 // pre-commit 약화 검사·refact/style 커밋의 변경 금지 대상
+  "tests_dir": "tests/",                 // 테스트 변경 선언 검사·refact/style 커밋의 변경 금지 대상
   "contract_tests_dir": "tests/contract/", // integration-qa 소유
   "spec_dir": "docs/specs",              // spec 경로 = <spec_dir>/issue-<N>.md
   "branch_pattern": "<N>-<slug>",        // 이슈 브랜치 이름 규칙 (설명용 문자열)
@@ -145,7 +145,7 @@ git hook·check-state(스크립트)가 같은 값을 읽어야 하고, 둘 다 �
 - **읽는 쪽:** `issue-harness`는 Phase 0에서 읽어 이후 모든 `Agent`/`TeamCreate` 호출에 반영한다.
   에이전트는 오케스트레이터가 프롬프트에 필요한 값을 담아 준다(상태 파일과 같은 원칙 — 에이전트가
   설정을 찾으러 다니지 않는다). 단 에이전트 본문에도 "없으면 `.claude/harness.config.json`을 읽는다"를 둔다.
-- **스크립트:** `pre-commit`·`commit-msg`는 `tests_dir`만, `check-state.py`는 `spec_dir`를 쓰지 않는다
+- **스크립트:** `commit-msg`는 `tests_dir`만, `check-state.py`는 `spec_dir`를 쓰지 않는다
   (state.json의 `spec` 경로를 그대로 검사).
 - **파일이 없으면:** 오케스트레이터는 멈추고 `/issue-harness:init`을 안내한다. git hook은 기본값(`tests/`)으로 돈다 —
   설정 누락이 검사를 끄면 안 된다.
@@ -249,7 +249,7 @@ ask가 뜨는 것은 하네스와 무관하게 원래 동작이다. OMC 등 다�
 |---|---|---|---|---|
 | `.claude/harness.config.json` | `templates/harness.config.json` | 생성 | 건너뜀 | **건너뜀** — 프로젝트 값을 채우는 파일이라 다른 것이 정상 |
 | `.claude/rules/agent-permissions.md` | `templates/agent-permissions.md` | 생성 | 건너뜀 | diff 출력 |
-| `.githooks/commit-msg`·`pre-commit`·`_harness.py` | `templates/githooks/` | 생성 + 실행 비트 | 건너뜀 | diff 출력 |
+| `.githooks/commit-msg`·`_harness.py` | `templates/githooks/` | 생성 + 실행 비트 | 건너뜀 | diff 출력 |
 
 ### 쓰지 않고 제시만 하는 것 (병합이 필요한 파일)
 
@@ -458,7 +458,7 @@ plugins/issue-harness/
     ├── harness.config.json
     ├── agent-permissions.md
     ├── claude-md-snippet.md
-    └── githooks/{commit-msg,pre-commit,_harness.py}
+    └── githooks/{commit-msg,_harness.py}
 ```
 
 스킬 이름이 원본 프로젝트의 남는 도메인 스킬과 겹치지 않는지: 원본에 남는 것은 C·D·축소된
@@ -531,5 +531,22 @@ KMTPA 레포(2026-10-26)에서 테스트가 제품 코드의 2.5배(함수 967�
 - 테스트 파일은 모듈 기준. 기존 동작 변경은 기존 테스트 수정
 - `contract_tests_dir`에는 경계면 왕복만
 
-기존 테스트를 고치거나 화면 단정을 줄이면 테스트 함수·`assert` 수가 줄어든다. 개수를 세는
-pre-commit 약화 검사(#9)가 이것을 막을 수 있다 — #9에서 다룬다.
+기존 테스트를 고치거나 화면 단정을 줄이면 테스트 함수·`assert`가 줄어든다. 개수를 세던 pre-commit
+검사는 #9에서 「선언 게이트」로 바꿨다 — 아래 절.
+
+## 테스트 변경 선언 게이트 (#9)
+
+개수 검사(pre-commit)는 정상 대체를 막고, 개수를 유지한 약화(`== 115` → `is not None`, 기대값을 구현값으로
+고치기)는 통과시켰다. 운영 중 차단 기록은 정상 대체 커밋뿐이었다.
+
+- 훅은 판단하지 않고 **선언 여부만** 본다. 대상은 함수 단위로 AST를 비교해 찾는다 — 삭제된 테스트 함수,
+  사라지거나 바뀐 검사 문장(`assert`·`pytest.raises`·`pytest.warns`·데코레이터·parametrize 케이스),
+  새 `skip`/`xfail`(함수·모듈 수준). 같은 이름·같은 검사 문장으로 다른 파일에 옮긴 함수는 제외한다.
+- 의도한 변경이면 꼬릿말 `Test-Change: <대상> — <사유>`로 선언한다. 메시지를 봐야 하므로
+  `pre-commit`이 아니라 `commit-msg`에서 검사한다.
+- 선언이 타당한지는 사람과 에이전트를 구분할 수 없는 훅이 아니라 4b 검증과 사람 리뷰가 대조한다.
+  선언된 변경은 `git log --grep "^Test-Change:"`로 전부 드러난다.
+- `--no-verify`가 필요 없어졌다. `permissions.deny`의 `--no-verify` 차단은 그대로 둔다.
+- 이미 init한 프로젝트: `.githooks/commit-msg`를 새 템플릿으로 바꾸고 `.githooks/pre-commit`을 지운다.
+  init은 기존 파일을 건너뛰므로 사람이 옮긴다.
+- 시나리오 검사: `tests/githooks_scenarios.sh <githooks 디렉터리>`

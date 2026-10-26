@@ -84,6 +84,7 @@ PR 생성, **머지**(로컬 머지·기본 브랜치 머지 둘 다), 의존성
 
 - `commit-msg` — 제목 `<타입> : <제목>`(feat·fix·docs·test·refact·style·chore) 외 차단.
   `feat`·`fix`에 꼬릿말 `Tests: T<n>`이 없으면 차단. `refact`·`style`이 `tests_dir`를 건드리면 차단.
-- `pre-commit` — 테스트 함수 순삭, `skip`/`xfail` 추가, `assert` 순삭 차단.
+  기존 테스트 함수 삭제, 검사 문장(`assert`·`pytest.raises`·데코레이터·parametrize 케이스) 삭제·변경,
+  `skip`/`xfail` 추가는 꼬릿말 `Test-Change: <대상> — <사유>`가 없으면 차단. 선언의 타당성은 4b가 대조한다.
 
 `--no-verify`는 `.claude/settings.json`의 `permissions.deny`로 막혀 있다. 사람만 터미널에서 쓴다.
