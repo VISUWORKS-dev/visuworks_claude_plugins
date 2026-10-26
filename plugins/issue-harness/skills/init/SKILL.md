@@ -38,4 +38,13 @@ python3 "${CLAUDE_PLUGIN_ROOT}/scripts/init.py" $ARGUMENTS
 | `.claude/settings.json` | 없을 때만 생성: `permissions.deny`(`--no-verify` 차단), `worktree.baseRef: "head"` |
 | `.gitignore` | 없을 때만 생성: `.harness/`, `.claude/worktrees/`, `_workspace/` 등 |
 
+## 기존 프로젝트 업그레이드
+
+같은 명령을 다시 실행하면 된다.
+
+- `.githooks/pre-commit`이 하네스가 깐 옛 개수 검사 그대로면 **지운다**(만듦 줄에 `삭제`로 나옴). git이 추적하던 파일이면 삭제를 커밋한다 — 커밋 전엔 구현 워크트리에서 옛 훅이 돈다. 사람이 고쳤으면 두고 안내만 한다(종료 코드 1)
+- 없는 `_harness.py`는 새로 만든다. 템플릿과 다른 `commit-msg`는 diff와 `cp` 명령을 보여준다
+- `harness.config.json`에 `models`·`test_file_cmd`가 없으면 생략 가능하다고만 알린다 — 파일은 건드리지 않는다
+- `.harness/ACTIVE` 이슈의 `state.json`이 옛 형식(`phase` 키)이면 경고한다 — 그 이슈를 끝낸 뒤 업그레이드한다
+
 `.harness/`와 spec 디렉터리는 만들지 않는다 — 이슈 착수 시 오케스트레이터가 만든다.
