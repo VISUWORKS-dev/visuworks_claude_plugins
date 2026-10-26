@@ -87,4 +87,5 @@ PR 생성, **머지**(로컬 머지·기본 브랜치 머지 둘 다), 의존성
   기존 테스트 함수 삭제·수집 제외(파일·클래스 이름 변경), 검사 문장(`assert` 조건·`pytest.raises`·parametrize 케이스)
   삭제·변경, 마커(데코레이터·`pytestmark`) 추가·삭제, 본문 `skip`/`xfail` 추가는 꼬릿말 `Test-Change: <대상> — <사유>`가 없으면 차단. 선언의 타당성은 4b가 대조한다.
 
-`--no-verify`는 `.claude/settings.json`의 `permissions.deny`로 막혀 있다. 사람만 터미널에서 쓴다.
+`--no-verify`·`commit -n`·`core.hooksPath` 변경·`GIT_CONFIG_*` 주입은 플러그인 PreToolUse 훅(`guard-git-bypass.py`)이
+플래그 위치와 무관하게 막는다. `permissions.deny`는 보조로 남는다. 사람만 터미널에서 쓴다.
