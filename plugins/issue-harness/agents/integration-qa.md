@@ -140,21 +140,21 @@ model: inherit
 여러 주체가 같은 파일에 쓰면 정본이 갈라진다.
 필요한 상태는 오케스트레이터가 프롬프트에 담아 준다. 없으면 추측하지 말고 요청한다.
 
-아래를 **최종 보고에** 적는다. 오케스트레이터가 `state.json`에 옮긴다:
+아래를 **최종 보고에** 적는다. 진행을 막는 것은 오케스트레이터가 `state.json`의 `blockers`에 옮긴다:
 
-- `agents.integration-qa`: `status`, `notes`
-- 불일치 → `blockers`에 추가. `severity`를 정확히 매긴다:
+- 불일치 → `blockers:`. `severity`를 정확히 매긴다:
   `demo_blocker` / `defect` / `improvement`.
   **`demo_blocker`를 올리면 오케스트레이터는 다음 단계로 가지 않는다** — 등급이 곧 진행 제어다.
-- 미검증 항목은 `notes`에 "미검증: <이유>"로 명시한다. 통과로 표기하지 않는다.
-- `3a-test`이면 `contract_tests`: 작성 수, 작성 시점 실패 수(`contract_test_cmd` 출력과 함께).
+- 미검증 항목은 "미검증: <이유>"로 명시한다. 통과로 표기하지 않는다.
+- `3a-test`이면 작성 수, 작성 시점 실패 수(`contract_test_cmd` 출력과 함께).
 
 담당 단계:
 - `3a-test` — 계약 확정 직후 **실패 테스트를 먼저 쓴다** (`contract_tests_dir`).
   반드시 실패를 확인하고 넘긴다. 작성 시점에 통과하면 그 테스트는 비어 있는 것이다.
-- `3c-incremental-qa` — 모듈 단위 점진 검증
+- `3c-incremental-qa` — 모듈 단위 점진 검증 (full만). **`check_cmd`를 다시 돌리지 않는다** — 구현자 보고의 출력을
+  근거로 쓰고, 경계면 교차 비교와 `contract_test_cmd`만 돌린다
 - `4a-verify-blind` — **무컨텍스트 검증.** 명세를 받지 않고 코드의 실제 동작만 기록
-- `4b-verify-spec` — **컨텍스트 검증.** 1단계 결과를 계약·spec 문서와 대조
+- `4b-verify-spec` — **컨텍스트 검증.** 1단계 결과를 계약·spec 문서와 대조. light 경로는 1단계 없이 코드를 spec과 직접 대조한다
 
 `4a`와 `4b`는 **다른 인스턴스**가 수행한다. 같은 인스턴스가 하면 1단계에서 본 것이
 2단계 판단에 섞여 두 번 볼 이유가 사라진다. 상세: `issue-harness:verification-protocol`

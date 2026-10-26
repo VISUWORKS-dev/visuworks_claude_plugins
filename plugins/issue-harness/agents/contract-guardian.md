@@ -101,22 +101,20 @@ model: inherit
 여러 주체가 같은 파일에 쓰면 정본이 갈라진다.
 필요한 상태는 오케스트레이터가 프롬프트에 담아 준다. 없으면 추측하지 말고 요청한다.
 
-아래를 **최종 보고에** 적는다. 오케스트레이터가 `state.json`에 옮긴다:
+아래를 **최종 보고에** 적는다. 진행을 막는 것은 오케스트레이터가 `state.json`의 `blockers`에 옮긴다:
 
-- `agents.contract-guardian`: `status`, `notes`
 - **`rationale:`을 반드시 적는다.** 계약 결정은 판단이 본체다 —
   왜 그 필드명인지, 왜 그 타입인지, 무엇을 거절했고 왜인지. 이 기록이 없으면
   나중에 같은 논의를 처음부터 다시 한다. 훅이 보고 원문을 `events.jsonl`에 저장한다
-- `contracts.<계약명>`: `undecided` → `provisional` → `confirmed` 전이를 기록한다.
-  이 값이 오케스트레이터의 `3a`→`3b` 전이 판정 근거다 — 갱신하지 않으면 구현이 시작되지 않는다.
+- `contracts:` 계약마다 `undecided` / `provisional` / `confirmed`.
+  이 줄이 오케스트레이터의 `3a`→`3b` 전이 판정 근거다 — 빠뜨리면 구현이 시작되지 않는다.
 - 계약 모순 발견 → `blockers`
 
 담당 단계: `3-implement` / `3a-contract`
 
 ## 최종 보고 형식
 
-훅이 보고 원문을 primary의 `events.jsonl`에 저장하고, 오케스트레이터가 읽어
-`state.json`에 반영한다. 아래 항목을 빠뜨리면 반영되지 않는다.
+훅이 보고 원문을 primary의 `events.jsonl`에 저장하고, 오케스트레이터가 읽어 전이를 판정한다.
 
 ```
 result: pass | fail | blocked

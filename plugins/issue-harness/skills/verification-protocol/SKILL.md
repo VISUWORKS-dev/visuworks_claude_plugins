@@ -5,7 +5,7 @@ description: "하네스의 2단계 검증과 계약 TDD 규약 — 무컨텍스�
 
 # Verification Protocol — 2단계 검증과 계약 TDD
 
-검증을 두 번 한다. **보는 것이 다르기 때문**이지 꼼꼼히 하려는 것이 아니다.
+검증을 두 번 한다. **보는 것이 다르기 때문**이다.
 
 경로·명령은 `.claude/harness.config.json`의 값이다(`contract_skill`, `contract_tests_dir`,
 `contract_test_cmd`, `src_dirs`, `tests_dir`, `spec_dir`). 오케스트레이터가 프롬프트에 담아 준다.
@@ -15,8 +15,12 @@ description: "하네스의 2단계 검증과 계약 TDD 규약 — 무컨텍스�
 | **1. 무컨텍스트** | 코드·테스트·실제 산출물 | 이 코드가 **실제로 무엇을 하는가** | 이게 요구사항인지 |
 | **2. 컨텍스트** | 1의 결과 + 계약·spec 문서·이슈 | **명세대로 만들었는가** | 명세 자체의 오류 |
 
-**두 결과가 불일치하는 지점이 가장 값진 발견이다.** 명세와 구현이 갈라진 곳이기 때문이다.
-불일치가 없으면 둘 다 맞거나, 둘 다 같은 것을 놓친 것이다.
+두 결과가 불일치하는 지점이 명세와 구현이 갈라진 곳이다.
+
+| 경로 | 하는 것 |
+|---|---|
+| full | 계약 TDD(`3a-test`) → `3c` → 1단계 → 2단계 |
+| light | **2단계만 1회** — 계약 신설·변경이 없어 경계면 판정 기준이 이미 확정돼 있다. 1단계·계약 TDD·`3c`를 하지 않는다 |
 
 ## 왜 무컨텍스트가 먼저인가
 
@@ -38,7 +42,7 @@ description: "하네스의 2단계 검증과 계약 TDD 규약 — 무컨텍스�
 | `src_dirs` 코드 | 계약 정본(`contract_skill`) |
 | `tests_dir` 전부 | `<spec_dir>/issue-<N>.md` |
 | 실제 산출물 파일 | 이슈 본문 (`gh issue view` 금지) |
-| 이슈 번호·제목 | `state.json`의 `contracts` |
+| 이슈 번호·제목 | `contract-guardian` 보고·계약 판정 |
 
 **이슈 제목까지는 준다.** 완전 무지 상태면 관련 없는 것까지 보고한다. 방향만 알고
 상세 명세는 모르는 상태가 목표다.
@@ -88,7 +92,18 @@ description: "하네스의 2단계 검증과 계약 TDD 규약 — 무컨텍스�
 어느 쪽이 틀렸는지는 임의로 정하지 말고 근거와 함께 보고한다.
 ```
 
-산출물: `_workspace/verify_<N>_spec.md`
+산출물: `_workspace/verify_<N>_spec.md` — 불일치마다 지점·근거를 적고 맨 위에 불일치 수를 적는다.
+
+### light 경로 — 1단계 보고서 없이
+
+```
+이슈 #<N>의 구현을 명세와 대조한다. 워크트리: <경로>.
+spec 문서(<spec_dir>/issue-<N>.md), 이슈 #<N>, 이 이슈가 소비하는 계약(<contract_skill>)을 읽는다.
+- 테스트 목록 항목마다: 테스트가 기대값을 그대로 단정하는가, 구현이 그것을 실제로 만족하는가(돌려서)
+- 목록에 없는데 구현된 것, 목록에 있는데 없는 것
+- 소비하는 계약의 필드·상태값을 바꾸거나 새로 만든 것이 있는가 — 있으면 full로 올릴 사유로 보고한다
+- spec 완료 조건 충족 여부, `Test-Change:` 꼬릿말 사유, 훅이 보지 않는 테스트 약화(위 목록)
+```
 
 ## 계약 TDD
 
@@ -171,19 +186,12 @@ description: "하네스의 2단계 검증과 계약 TDD 규약 — 무컨텍스�
 통과하면 둘 중 하나다 — 이미 구현되었거나, 테스트가 아무것도 검증하지 않거나.
 후자가 훨씬 흔하다. 실패를 확인하지 않은 테스트는 나중에 통과해도 의미가 없다.
 
-## state.json 기록
+## 기록
 
-```jsonc
-"verification": {
-  "blind":    { "status": "done", "output": "_workspace/verify_12_blind.md" },
-  "spec":     { "status": "done", "output": "_workspace/verify_12_spec.md" },
-  "mismatches": 2,        // 1단계와 2단계가 갈라진 지점 수
-  "contract_tests": { "written": 7, "failing_at_write": 7, "passing_now": 5 }
-}
-```
-
-`failing_at_write`가 `written`보다 작으면 **빈 테스트를 쓴 것이다.** 오케스트레이터는 이 경우
-다음 단계로 보내지 않는다.
+검증 결과는 `_workspace/verify_<N>_{blind,spec}.md`와 보고에 남는다. `state.json`에는 적지 않는다 —
+불일치 중 진행을 막는 것만 `blockers`로 오케스트레이터가 옮긴다. 계약 테스트 보고에는
+작성 수와 작성 시점 실패 수를 `contract_test_cmd` 출력과 함께 적는다. 실패 수 < 작성 수면
+오케스트레이터는 다음 단계로 보내지 않는다.
 
 ## 에러 핸들링
 

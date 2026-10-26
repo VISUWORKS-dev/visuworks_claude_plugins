@@ -24,8 +24,8 @@ description: "작업 단위 규약 — GitHub 이슈 = 워크트리 = PR. 이슈
 | 이슈 브랜치 | 사람/오케스트레이터 — `branch_pattern`대로. `gh issue develop`도 된다 | `12-order-export` |
 | 워크트리 브랜치 | Claude Code가 자동 생성 (4절) — 이름 지정 불가 | `worktree-agent-<id>` |
 
-워크트리 브랜치 이름에는 이슈 번호가 없다. 이슈와의 연결은 `state.json`
-(`issue`, `agents.implementer.branch`)이 정본이다.
+워크트리 브랜치 이름에는 이슈 번호가 없다. 이 이슈의 spec 커밋을 포함하는 `worktree-agent-*` 브랜치가
+이 이슈의 것이다(`git branch --contains <spec 커밋> --list 'worktree-agent-*'`).
 
 ## 2. 계획 — spec 문서
 
@@ -75,7 +75,7 @@ Agent(
   isolation: "worktree",
   name: "impl-<번호>",
   run_in_background: true,
-  model: <model>,
+  model: <models.implement>,
   prompt: "<issue-harness:issue-harness Phase 3 템플릿 — 첫 모듈 묶음>"
 )
 ```
@@ -85,7 +85,7 @@ Agent(
   확인한다. 이 설정이 없으면 기본 브랜치에서 갈라져 **핸드오프 커밋이 없는 워크트리**가 된다.
   플러그인은 이 설정을 넣을 수 없다 — `/issue-harness:init`이 안내한다.
 - **위치·브랜치는 자동이다** — `.claude/worktrees/agent-<id>/`, `worktree-agent-<id>`.
-  완료 알림에 경로와 브랜치가 함께 온다. `state.json`의 `agents.implementer`에 기록한다.
+  완료 알림에 경로와 브랜치가 함께 온다. 나중에는 `git worktree list`로 다시 찾는다.
 - **다음 단위는 `SendMessage(to: "impl-<번호>")`로 보낸다.** 같은 워크트리·같은 맥락에서
   이어지고, 끝나면 다시 완료 알림이 온다.
 - **격리는 Claude Code가 강제한다.** 구현자가 메인 체크아웃의 파일을 고치거나 그쪽으로 git을
@@ -141,8 +141,8 @@ Claude Code 워크트리는 gitignore된 의존성 설치 디렉터리(가상환
   막고 대상 목록을 출력한다. 마커(데코레이터·`pytestmark`)를 붙이거나 떼는 것, 클래스 이름 변경, 함수를 다른 클래스로
   옮기거나 클래스로 감싸기, 파일 이름을 pytest 수집 규칙(`test_*.py`) 밖으로 바꾸기도 변경이다. 테스트 추가, `assert` 추가, assert 메시지 변경, parametrize 케이스 추가,
   같은 함수를 다른 파일로 옮기는 것은 선언하지 않는다. `--no-verify`는 쓰지 않는다.
-- **커밋 전에 `check_cmd`를 통과시킨다.** 린터가 작업 트리를 고치면 이후 `git diff`로 무엇이
-  바뀌었는지 본다.
+- **항목 커밋은 관련 테스트(`test_file_cmd`) 통과 후, 묶음 보고는 `check_cmd` 통과 후.** 린터가 작업 트리를
+  고치면 이후 `git diff`로 무엇이 바뀌었는지 본다 (`issue-harness:tdd-cycle`).
 - **이슈 브랜치에 커밋하지 않는다.** 구현자는 자신의 워크트리 브랜치에만 커밋한다.
   **오케스트레이터도 대칭으로 지킨다** — 워크트리가 도는 동안 이슈 브랜치에 커밋하지 않는다(8절).
 
@@ -187,23 +187,24 @@ primary를 찾아 거기에만 쓴다(`issue-harness:harness-state`). 정본은 
 머지 조건 — **완료 알림·종료 기록만으로 머지하지 않는다.** "끝났다"만 뜻하고
 "성공했다"가 아니다(`issue-harness:harness-state`). 셋을 확인한다:
 
-1. 워크트리에 기능 커밋이 있는가 (`git -C <워크트리> log --grep "^Tests: T"`)
+1. 워크트리에 기능 커밋이 있는가 (`git -C <워크트리> log <spec 커밋>..HEAD --grep "^Tests: T"` — 범위 없이 세면 다른 이슈 커밋이 섞인다)
 2. `blockers`에 `resolved: false`가 없는가
-3. 테스트 목록 항목이 전부 `pass`인가
+3. `<spec 커밋>..HEAD`의 `Tests:` 꼬릿말 합집합이 테스트 목록 전체인가
+4. `4c` — 워크트리 HEAD에서 `check_cmd`가 통과했는가
 
 ```bash
 # 1. 이슈 브랜치에서 워크트리 브랜치를 머지
 git switch <이슈브랜치>
 git merge --no-ff <워크트리브랜치> -m "chore : 워크트리 브랜치를 이슈 브랜치에 반영한다 (#<번호>)"
 
-# 2. **머지 후 primary에서 상통합 검증** — 여기가 유일하게 양쪽이 합쳐진 지점이다
-<check_cmd>
+# 2. 상통합 검증 — 이슈 브랜치에 워크트리가 모르는 커밋이 있을 때만.
+#    머지 결과 트리가 워크트리 트리와 같으면 4c가 이미 같은 트리를 검사했다
+[ "$(git rev-parse HEAD^{tree})" = "$(git rev-parse <워크트리브랜치>^{tree})" ] || <check_cmd>
 ```
 
 **커밋 메시지에 `merge:` 접두를 쓰지 마라** — `commit-msg` 훅이 거부한다. `chore :`로 쓴다.
 
-`check_cmd`가 실패하면 **push하지 않고 고친다.** 워크트리에서 통과한 것은 구현
-검증이고, 상통합 검증이 아니다 — 워크트리가 갈라진 뒤 이슈 브랜치에 들어간 것과의 결합은
+`check_cmd`가 실패하면 **push하지 않고 고친다.** 워크트리가 갈라진 뒤 이슈 브랜치에 들어간 것과의 결합은
 여기서만 드러난다.
 
 ### 사람이 실행할 명령 — push·PR만
