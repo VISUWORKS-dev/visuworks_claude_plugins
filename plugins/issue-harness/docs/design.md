@@ -91,7 +91,7 @@
 |---|---|---|
 | `settings.json` `hooks.SubagentStop` | **코어** → 플러그인 훅 | 원본에서 **지운다** — 남기면 이중 발화 |
 | `settings.json` `hooks.Stop` | **삭제** | 4절 |
-| `settings.json` `permissions.deny` (`--no-verify`, `-n`) | **설정** | 플러그인이 넣을 수 없다(settings.json 키 무시). init이 diff로 제시 |
+| `settings.json` `permissions.deny` (`--no-verify`, `-n`) | **설정**(보조) | 플러그인이 넣을 수 없다(settings.json 키 무시). init이 diff로 제시. 앞부분 일치라 플래그가 뒤에 오면 통과한다 — 본 차단은 플러그인 PreToolUse 훅 `scripts/guard-git-bypass.py`(#19). 시나리오: `tests/guard_scenarios.sh` |
 | `settings.json` `worktree.baseRef: "head"` | **설정** | 같은 이유. 이게 없으면 isolation 워크트리가 기본 브랜치에서 갈라져 핸드오프 커밋이 없는 워크트리가 된다 |
 | `.gitignore` `.claude/worktrees/`·`.harness/`·`.harness.bak-*/`·`_workspace/`·`_workspace_*/` | **설정** | init이 빠진 줄을 제시 |
 | `core.hooksPath=.githooks` | **설정** | git 로컬 설정이라 파일이 아니다. init이 현재 값을 보고 비어 있을 때만 설정, 다른 값이면 멈춘다 |
@@ -562,7 +562,7 @@ KMTPA 레포(2026-10-26)에서 테스트가 제품 코드의 2.5배(함수 967�
   `pre-commit`이 아니라 `commit-msg`에서 검사한다.
 - 선언이 타당한지는 사람과 에이전트를 구분할 수 없는 훅이 아니라 4b 검증과 사람 리뷰가 대조한다.
   선언된 변경은 `git log --grep "^Test-Change:"`로 전부 드러난다.
-- `--no-verify`가 필요 없어졌다. 차단 메시지에서도 안내하지 않는다. `permissions.deny`의 `--no-verify` 차단은 그대로 둔다.
+- `--no-verify`가 필요 없어졌다. 차단 메시지에서도 안내하지 않는다. `permissions.deny`의 `--no-verify` 차단은 보조로 두고, 본 차단은 PreToolUse 훅이 한다(#19).
 - 이미 init한 프로젝트: `.githooks/commit-msg`를 새 템플릿으로 바꾸고 `.githooks/pre-commit`을 지운다.
   init은 기존 파일을 건너뛰므로 사람이 옮긴다.
 - 시나리오 검사: `tests/githooks_scenarios.sh <githooks 디렉터리>`. `PY=/usr/bin/python3`로 macOS 기본 3.9도 확인한다
