@@ -9,10 +9,12 @@ v3: 진행 지점(phase·agents·test_list 등)은 git 로그가 정본이다. s
 
 사용: python3 "${CLAUDE_PLUGIN_ROOT}/scripts/check-state.py" [경로...]
       인자가 없으면 primary의 `.harness/ACTIVE` 이슈 하나. ACTIVE가 없으면 검사할 것이 없다.
+      ACTIVE가 `issue-<N>`이 아니거나 가리키는 state.json이 없으면 위반이다 — 조용히 통과하면 검사가 없는 것과 같다.
       끝난 이슈의 옛(v2) state.json은 검사하지 않는다 — 활성 이슈마다 실패하면 안 된다.
 종료 코드: 0 통과 / 1 위반
 """
 import json
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -84,8 +86,10 @@ def check(path: Path) -> list:
     return bad
 
 
-def check_fork(root: Path) -> list:
-    """워크트리에 정본과 다른 state.json이 있으면 분기다 — 각자 기록하면 정본이 갈라진다."""
+def check_fork(root: Path, issues: list) -> list:
+    """워크트리에 정본과 다른 state.json이 있으면 분기다 — 각자 기록하면 정본이 갈라진다.
+
+    검사 대상 이슈(`issues`)만 본다. 다른 이슈가 남긴 잔여 파일로 지금 이슈의 검사가 실패하면 안 된다."""
     bad = []
     try:
         out = subprocess.run(
@@ -101,7 +105,9 @@ def check_fork(root: Path) -> list:
         wt = Path(line[len("worktree "):])
         if wt == root:
             continue
-        for wt_state in wt.glob(".harness/issue-*/state.json"):
+        for wt_state in (wt / ".harness" / i / "state.json" for i in issues):
+            if not wt_state.exists():
+                continue
             mine = root / wt_state.relative_to(wt)
             if not mine.exists():
                 bad.append(f"정본 분기: 워크트리에만 있다 — {wt_state}")
@@ -117,14 +123,21 @@ def main(argv: list) -> int:
     root = primary_root()
     active = root / ".harness/ACTIVE"
     paths = [Path(a) for a in argv]
+    bad = []
     if not paths and active.exists():
-        paths = [root / ".harness" / active.read_text(encoding="utf-8").strip() / "state.json"]
-        paths = [p for p in paths if p.exists()]
-    if not paths:
+        name = active.read_text(encoding="utf-8").strip()
+        target = root / ".harness" / name / "state.json"
+        if not re.fullmatch(r"issue-\d+", name):
+            bad.append(f"ACTIVE={name!r} — `issue-<N>` 형식이어야 한다 (harness-state 「상태 파일」)")
+        elif not target.exists():
+            bad.append(f"ACTIVE가 가리키는 {target}가 없다 — 초기화했는지, ACTIVE가 맞는 이슈인지 확인한다")
+        else:
+            paths = [target]
+    if not paths and not bad:
         print("state.json 없음 — 검사할 것이 없다")
         return 0
 
-    bad = [e for p in paths for e in check(p)] + check_fork(root)
+    bad += [e for p in paths for e in check(p)] + check_fork(root, [p.parent.name for p in paths])
     if bad:
         print(f"state.json 검사 실패 ({len(bad)}건):", file=sys.stderr)
         for b in bad:

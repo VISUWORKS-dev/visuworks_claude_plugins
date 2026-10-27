@@ -272,6 +272,9 @@ full은 팀원을 종료하고 서브에이전트로 검증한다 — 팀 안에
 ```bash
 git switch <이슈브랜치>
 git merge --no-ff <워크트리브랜치> -m "chore : 워크트리 브랜치를 이슈 브랜치에 반영한다 (#<N>)"
+# 기본 브랜치가 앞서 있으면 반영한다 (issue-workflow 8절 2단계)
+git fetch origin <기본 브랜치>
+git merge-base --is-ancestor origin/<기본 브랜치> HEAD || git merge --no-ff origin/<기본 브랜치> -m "chore : <기본 브랜치>를 이슈 브랜치에 반영한다 (#<N>)"
 # 머지 결과 트리가 4c에서 검사한 트리와 같으면 다시 돌리지 않는다
 [ "$(git rev-parse HEAD^{tree})" = "$(git rev-parse <워크트리브랜치>^{tree})" ] || <check_cmd>
 ```
