@@ -68,6 +68,11 @@
   - 해당 주차 연구노트 페이지가 없으면 기존 페이지 템플릿 구조를 따라 새로 생성
   - Git Issue/PR·Figma 등 링크는 사용자가 준 것만 채움(검색·추측 금지)
   - 정리한 내용은 작성 전 사용자 승인 게이트를 거침
+- `skills/repo-init/SKILL.md` — 새 레포 초기 세팅 스킬 (`/visuworks-work-manager:repo-init`)
+  - `.github/` 이슈 템플릿 3종(bug·feature·chore) + PR 템플릿 복사
+  - `.gitignore` = 공통(OS·에디터·.env·에이전트 로컬 상태) + `gh api /gitignore/templates/<언어>`
+  - README 최소 포맷(소개·시작하기 명령·구조·작업 규칙) — 사람과 AI 에이전트가 같이 읽도록 정확한 명령만
+  - 이미 있는 파일은 덮어쓰지 않음
 - `hooks/hooks.json` + `scripts/gate-notion-search.sh` — 워크스페이스 검색·쿼리 → 사용자 인가(ask) 게이트 (Cowork 전용, weekly-report의 DB 내 필터 쿼리도 포함)
 - `CLAUDE.md` — 각자 Cowork 프로젝트 루트에 복사해 두는 "항상 로드" 읽기 절차 템플릿
 
