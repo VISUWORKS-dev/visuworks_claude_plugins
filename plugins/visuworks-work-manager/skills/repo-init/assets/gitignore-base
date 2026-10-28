@@ -1,0 +1,17 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# 에디터
+.idea/
+.vscode/
+
+# 비밀값
+.env
+.env.*
+!.env.example
+
+# AI 에이전트 로컬 상태
+.omc/
+.claude/settings.local.json
+.claude/worktrees/
