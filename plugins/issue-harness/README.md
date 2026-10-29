@@ -125,7 +125,9 @@ tracked 파일이다. 오케스트레이터·에이전트(모델)와 git hook(�
     // "scope": "my-scope-notes",          // scope-guard의 프로젝트 사례
     // "workflow": "my-issue-order"        // 이슈 의존 순서
   },
-  "dependency_change": "human"             // 의존성 추가는 사람만
+  "dependency_change": "human",            // 의존성 추가는 사람만
+  "pr_mode": { "light": "review", "full": "full" },  // pr-writing 모드 basic·review·full. 생략하면 basic
+  "push_pr": "human"                      // orchestrator면 Phase 5에서 오케스트레이터가 push·PR. 생략하면 human
 }
 ```
 

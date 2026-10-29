@@ -26,6 +26,8 @@ cat .claude/harness.config.json
 | `contract_skill` | 계약 정본 스킬. `null`이면 spec의 「이 이슈가 확정하는 계약」 절이 정본 |
 | `domain_agents` | 팀에 넣을 수 있는 프로젝트 에이전트와 결정 범위 |
 | `domain_skills.scope`·`.workflow` | 범위 판정 사례, 이슈 의존 순서 |
+| `pr_mode.light`·`.full` | `pr-writing` 모드(`basic`·`review`·`full`). 없으면 `basic` |
+| `push_pr` | `orchestrator`면 Phase 5에서 오케스트레이터가 push·PR 생성. 없거나 `human`이면 명령만 출력 |
 
 에이전트에게는 필요한 값만 프롬프트에 담아 준다.
 
@@ -279,11 +281,18 @@ git merge-base --is-ancestor origin/<기본 브랜치> HEAD || git merge --no-ff
 [ "$(git rev-parse HEAD^{tree})" = "$(git rev-parse <워크트리브랜치>^{tree})" ] || <check_cmd>
 ```
 
+**`4f-review`** — `pr_mode.<경로>`가 `review`·`full`일 때만. `4e` 뒤 이슈 브랜치에서 `pr-writing` 7절 리뷰를 실행하고
+결과를 `_workspace/review_<N>.md`에 남긴다. 결함은 `SendMessage(to: "impl-<N>")`로 되돌리고 수정 커밋 뒤 `4c`·`4e`를 다시 한다
+(테스트 목록 대응이 바뀌면 `4b`도).
+
 ### Phase 5: 보고
 
 1. `_workspace/`는 보존한다.
 2. `handoff_to_human`을 채우고 사용자에게 보고한다 — 검증된 완료, 미완료·블로커, 남은 `TODO(확인필요)`,
-   사람이 실행할 명령(push·PR만). 워크트리 브랜치는 origin에 올리지 않는다.
+   사람이 실행할 명령. 워크트리 브랜치는 origin에 올리지 않는다.
+   PR 본문은 `pr-writing`으로 `_workspace/pr_<N>.md`에 쓴다. `push_pr: orchestrator`면 오케스트레이터가
+   `pr-writing` 6절대로 push·PR을 실행하고 링크를 보고한다 — 역할 에이전트는 여전히 push하지 않는다.
+   아니면 아래 명령을 출력한다.
 
    ```
    머지·검증 완료. 다음 명령을 실행하세요:
@@ -292,8 +301,8 @@ git merge-base --is-ancestor origin/<기본 브랜치> HEAD || git merge --no-ff
      gh pr create --base <기본 브랜치> --title "..." --body-file <경로>
    ```
 3. `ACTIVE`를 넘기거나 지운다.
-4. 스킬 목록에 `mattpocock-skills:` 접두 스킬이 보이면 push 전 이슈 브랜치에서 `/mattpocock-skills:code-review`,
-   같은 세션에서 `/mattpocock-skills:retro`를 안내한다(retro는 이 대화 맥락으로 회고한다).
+4. `pr_mode.<경로>`가 `full`이면 PR 뒤 같은 세션에서 `pr-writing` 8절 회고를 실행한다.
+   `pr_mode`가 없으면 스킬 목록에 `mattpocock-skills:`가 보일 때 code-review·retro를 안내만 한다.
    PR 본문은 팀 `pr-writing`을 따른다(`mattpocock-skills:pr`을 쓰지 않는다).
 5. "결과나 팀 구성에서 바꾸고 싶은 점이 있나요?" — 강요하지 않는다.
 

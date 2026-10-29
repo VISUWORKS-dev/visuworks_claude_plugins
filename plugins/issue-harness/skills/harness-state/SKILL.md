@@ -179,6 +179,7 @@ HEAD에서 새로 갈라지므로 이전 워크트리 커밋이 없다:
 | `4-verify` | `4a-verify-blind` | `integration-qa` (무컨텍스트) | ○ | — |
 | | `4b-verify-spec` | `integration-qa` (컨텍스트, 다른 인스턴스) | ○ | ○ |
 | | `4c-make-check` / `4d-placeholder-scan` / `4e-merge` | 오케스트레이터 | ○ | ○ |
+| | `4f-review` (`pr_mode`가 `review`·`full`일 때) | 오케스트레이터 — `pr-writing` 7절 | ○ | ○ |
 | `5-report` | `5a-report` / `5b-human-handoff` | 오케스트레이터 | ○ | ○ |
 
 ## 전이 규칙
