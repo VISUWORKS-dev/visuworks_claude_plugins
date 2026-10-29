@@ -291,7 +291,10 @@ git merge-base --is-ancestor origin/<기본 브랜치> HEAD || git merge --no-ff
 2. `handoff_to_human`을 채우고 사용자에게 보고한다 — 검증된 완료, 미완료·블로커, 남은 `TODO(확인필요)`,
    사람이 실행할 명령. 워크트리 브랜치는 origin에 올리지 않는다.
    PR 본문은 `pr-writing`으로 `_workspace/pr_<N>.md`에 쓴다. `push_pr: orchestrator`면 오케스트레이터가
-   `pr-writing` 6절대로 push·PR을 실행하고 링크를 보고한다 — 역할 에이전트는 여전히 push하지 않는다.
+   `pr-writing` 0절의 모드 순서를 끝까지 따른다(6 push·PR → 9 인라인 코멘트) — 절 번호를 골라 부르지 않는다.
+   역할 에이전트는 여전히 push하지 않는다.
+   보고는 완료한 단계마다 확인 가능한 증거를 단다 — 커밋 해시, `check_cmd` 결과 줄, 검증 보고서 경로,
+   PR 링크, 인라인 코멘트 리뷰 URL. 증거가 없는 단계는 「안 함 — 이유」로 쓴다.
    아니면 아래 명령을 출력한다.
 
    ```
