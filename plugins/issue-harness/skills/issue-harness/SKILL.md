@@ -123,6 +123,9 @@ cat .harness/issue-<N>/state.json
 2. `gh issue view <N> --json title,body,parent,blockedBy` — 언급된 연관 이슈도 읽는다. `parent`가 있으면
    부모 스펙 이슈 본문도 읽는다(`gh issue view <parent.number> --json body` — `parent`에는 본문이 없다).
    그 뒤 **경로(full/light)를 정한다.**
+   **전제 확인** — 이슈 설명의 원인·전제("X라서 느리다", "기본값이 Y다")가 실행 기록·DB·로그로 확인 가능하면
+   계획 전에 확인한다. 어긋나면 진행하지 않고 근거와 함께 사람에게 보고한다. 작업 중 어긋나는 증거를 봐도 같다 —
+   기준선·방식 질문으로 돌리지 말고 전제 문제로 올린다.
 3. 선행 이슈 — `blockedBy`에 열린 이슈가 있으면 사용자에게 확인한다. `domain_skills.workflow`가 있으면 의존 순서도 본다.
    선행 계약이 미확정이면 사용자에게 확인한다.
    이슈가 모호하고 스킬 목록에 `mattpocock-skills:` 접두 스킬(예: `mattpocock-skills:tdd`)이 보이면
