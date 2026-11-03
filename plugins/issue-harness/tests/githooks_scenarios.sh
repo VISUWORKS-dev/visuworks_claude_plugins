@@ -1,5 +1,6 @@
 #!/bin/bash
 # commit-msg Test-Change 게이트 시나리오. 인자: githooks 디렉터리. PY=/usr/bin/python3 로 인터프리터 지정
+[ -f "$1/commit-msg" ] || { echo "사용법: $0 <githooks 디렉터리> (templates/githooks)" >&2; exit 2; }
 H=$(cd "$1" && pwd) || exit 9; R=$(mktemp -d); cd $R; git init -q; mkdir -p .githooks tests
 cp $H/commit-msg $H/_harness.py .githooks/; chmod +x .githooks/commit-msg; git config core.hooksPath .githooks
 [ -n "$PY" ] && sed -i.bak "1s|.*|#!$PY|" .githooks/commit-msg
@@ -146,4 +147,11 @@ git rm -q tests/test_br.py; expect ok "깨진 파일 삭제 ::* 선언" "$(print
 printf 'import pytest\nbase: object = pytest.mark.skipif(False, reason="x")\nneeds = base\n@needs\ndef test_al():\n    assert 1\n' > tests/test_al.py; git add -A; git commit -qm "test : al"; BASE=$(git rev-parse HEAD)
 python3 -c "p='tests/test_al.py';s=open(p).read();open(p,'w').write(s.replace('skipif(False, ','skip('))"; git add -A; expect block "두 단계 별칭 정의를 skip으로" "test : al"
 rep 'import pytest' $'import pytest\nm = pytest.mark.skip(pytest.skip("x", allow_module_level=True))'; git add -A; expect block "마커 정의에 skip 호출 숨김" "test : m"
+# 31 실제 머지(MERGE_HEAD)는 브랜치 커밋의 선언을 다시 요구하지 않는다 / 제목만 Merge인 일반 커밋은 면제되지 않는다
+M=$(git branch --show-current); git checkout -qb wt
+rep $'def test_keep():\n    assert 1 + 1 == 2\n' ''
+git add -A; git commit -qm "$(printf 'test : 삭제\n\nTest-Change: test_keep — 중복')"; git checkout -q $M
+if git merge -q --no-ff -m "chore : 워크트리 브랜치를 이슈 브랜치에 반영한다 (#1)" wt >/dev/null 2>$R/err; then pass=$((pass+1)); echo "PASS 하네스 머지(chore 제목)"; else fail=$((fail+1)); echo "FAIL 하네스 머지(chore 제목)"; cat $R/err; fi
+git reset -q --hard $BASE; git branch -qD wt
+rep $'def test_keep():\n    assert 1 + 1 == 2\n' ''; git add -A; expect block "제목만 Merge(제목 형식으로 차단)" "Merge branch 'wt'"
 echo "pass=$pass fail=$fail"; rm -rf $R; [ $fail = 0 ]

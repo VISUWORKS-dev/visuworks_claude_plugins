@@ -11,7 +11,10 @@ run() { (cd ${W:-$R} && $PY $I "$@" >$R/out 2>&1; echo $? >$R/rc); }
 rc() { [ "$(cat $R/rc)" = "$1" ]; }
 # 1 신규 설치, 두 번째 실행은 쓰기 0건
 new; run; ok "신규 설치" "rc 0 && [ -f $R/.githooks/_harness.py ] && [ -x $R/.githooks/commit-msg ]"
-run; ok "재실행 쓰기 0건" "rc 0 && grep -q '^만듦: 없음' $R/out"; rm -rf $R
+run; ok "재실행 쓰기 0건" "rc 0 && grep -q '^만듦: 없음' $R/out"
+ok "커밋 전 .githooks 커밋 안내" "grep -q '.githooks/.를 커밋한다' $R/out"
+git -C $R add .githooks; git -C $R commit -qm "chore : 훅"; run; ok "커밋 후 안내 없음" "! grep -q '.githooks/.를 커밋한다' $R/out"; rm -rf $R
+new; echo .githooks/ > $R/.gitignore; run; run; ok "gitignore된 .githooks도 커밋 안내" "grep -q '.githooks/.를 커밋한다' $R/out"; rm -rf $R
 # 2 옛 프로젝트: 하네스가 깐 pre-commit을 커밋해 둠, 옛 commit-msg, 새 키 없는 config, 진행 중인 v2 state
 new; mkdir -p $R/.githooks $R/.claude $R/.harness/issue-3
 old pre-commit > $R/.githooks/pre-commit; old commit-msg > $R/.githooks/commit-msg; old _harness.py > $R/.githooks/_harness.py
