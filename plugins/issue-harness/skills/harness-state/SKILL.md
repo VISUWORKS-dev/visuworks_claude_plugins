@@ -207,7 +207,8 @@ HEAD에서 새로 갈라지므로 이전 워크트리 커밋이 없다:
 
 ## 초기화
 
-이슈 착수 시 오케스트레이터가 만들고 `ACTIVE`에 `issue-<N>`을 쓴다:
+이슈 착수 시 오케스트레이터가 `check-state.py --init <N>`으로 만든다 — 아래 블록을 쓰고 `ACTIVE`에 `issue-<N>`을 쓴다.
+이미 있으면 덮어쓰지 않는다(이어서 하면 Phase 0):
 
 ```json
 { "issue": <N>, "updated_at": "<ISO8601>", "open_questions": [], "blockers": [], "handoff_to_human": [] }
