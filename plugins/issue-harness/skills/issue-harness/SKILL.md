@@ -244,11 +244,12 @@ SendMessage(to: "impl-<N>", message: <템플릿 — 다음 묶음, 3c 지적은 
 ```
 
 **go 직전 반영** — 구현 중 사람이 승인한 계약·spec 커밋이 이슈 브랜치에 들어가면(`issue-harness:issue-workflow`
-8절 규칙 1 예외) 워크트리는 그것을 모른다. 다음 go(`SendMessage`·`4b`·`4f` 되돌림 포함)마다 먼저 확인한다:
+8절 규칙 1 예외) 워크트리는 그것을 모른다. 첫 go는 HEAD에서 갈라지므로 해당 없다. 다음 go(`SendMessage`·`4b`·`4f` 되돌림 포함)마다
+먼저 확인한다. 워크트리 브랜치는 첫 go 완료 알림에 있다(못 찾으면 `issue-harness:harness-state` 「구현 워크트리 찾기」):
 
 ```bash
 git log --oneline <워크트리브랜치>..<이슈브랜치>     # 비었으면 할 일 없음
-git -C <워크트리> status --porcelain                 # 비어 있어야 한다 — 구현자는 go 사이에 커밋을 끝냈다
+git -C <워크트리> status --porcelain                 # 비어 있어야 한다 — 아니면 머지하지 않고 구현자에게 커밋부터 시킨다
 git -C <워크트리> merge --no-ff <이슈브랜치> -m "chore : 이슈 브랜치의 계약·spec 갱신을 워크트리에 반영한다 (#<N>)"
 ```
 

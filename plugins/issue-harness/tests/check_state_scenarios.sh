@@ -21,9 +21,13 @@ init() { # $1=기대 종료 코드 $2=설명 $3...=인자 — 워크트리에서
   if [ "$got" = "$1" ]; then pass=$((pass+1)); echo "PASS $2"; else fail=$((fail+1)); echo "FAIL $2 (got $got)"; cat $R/out; fi
 }
 init 0 '--init 새 이슈' 60
-[ "$(cat .harness/ACTIVE)" = issue-60 ] && [ ! -e ../wt/.harness/issue-60 ] && expect 0 '--init 결과가 검사를 통과하고 primary에만 쓴다'
+if [ "$(cat .harness/ACTIVE)" = issue-60 ] && [ ! -e ../wt/.harness/issue-60 ]; then expect 0 '--init 결과가 검사를 통과하고 primary에만 쓴다'
+else fail=$((fail+1)); echo 'FAIL --init이 primary ACTIVE·state.json에 쓰지 않음'; fi
 echo '{"issue":60,"open_questions":[{"id":"q1","question":"?","answer":null}],"blockers":[],"handoff_to_human":[]}' > .harness/issue-60/state.json
 init 1 '--init 기존 상태는 덮어쓰지 않는다' 60
 grep -q q1 .harness/issue-60/state.json && pass=$((pass+1)) || { fail=$((fail+1)); echo 'FAIL 기존 질문 보존'; }
 init 1 '--init 번호가 아님' abc
+init 1 '--init 번호가 숫자 문자이지만 ASCII가 아님' ²
+init 1 '--init 인자 초과' 61 junk
+grep -q Traceback $R/out && { fail=$((fail+1)); echo 'FAIL --init 오류가 traceback'; }
 rm -rf $R; echo "pass=$pass fail=$fail"; [ $fail -eq 0 ]

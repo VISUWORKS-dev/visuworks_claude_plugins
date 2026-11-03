@@ -18,12 +18,12 @@ v3: 진행 지점(phase·agents·test_list 등)은 git 로그가 정본이다. s
 """
 import json
 import re
-from datetime import datetime, timezone
 import subprocess
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 
-# issue-harness:harness-state 스킬 「스키마」와 1:1이다. 하나를 바꾸면 둘 다 바꾼다.
+# issue-harness:harness-state 스킬 「스키마」·「초기화」와 1:1이다(`init()`의 블록 포함). 하나를 바꾸면 모두 바꾼다.
 ALLOWED = {"issue", "updated_at", "open_questions", "blockers", "handoff_to_human"}
 REQUIRED = {"issue", "open_questions", "blockers", "handoff_to_human"}
 SEVERITY = {"demo_blocker", "defect", "improvement"}
@@ -124,7 +124,7 @@ def check_fork(root: Path, issues: list) -> list:
 
 
 def init(root: Path, n: str) -> int:
-    if not n.isdigit():
+    if not re.fullmatch(r"[1-9][0-9]*", n):
         print(f"--init {n!r} — 이슈 번호여야 한다", file=sys.stderr)
         return 1
     target = root / ".harness" / f"issue-{n}" / "state.json"
@@ -144,7 +144,7 @@ def init(root: Path, n: str) -> int:
 def main(argv: list) -> int:
     root = primary_root()
     if argv[:1] == ["--init"]:
-        return init(root, argv[1] if len(argv) > 1 else "")
+        return init(root, argv[1] if len(argv) == 2 else " ".join(argv[1:]))
     active = root / ".harness/ACTIVE"
     paths = [Path(a) for a in argv]
     bad = []
