@@ -11,7 +11,7 @@ issue-harness 플러그인의 역할 에이전트가 **쓸 수 있는 경로**�
 | 에이전트 | 쓰기 허용 | 쓰기 금지 | 워크트리 | 커밋 |
 |---|---|---|---|---|
 | `issue-harness:issue-planner` | `<spec_dir>/issue-<N>.md` | 그 외 전부 | 불필요 | 안 함 |
-| `issue-harness:contract-guardian` | `contract_skill` 디렉터리 | `src_dirs`, `tests_dir`<br>**상태 파일 전부** | 불필요 | 안 함 |
+| `issue-harness:contract-guardian` | `contract_skill` 디렉터리<br>(`null`이면 spec의 계약 절) | `src_dirs`, `tests_dir`<br>**상태 파일 전부** | 불필요 | 안 함 |
 | `issue-harness:implementer` | `src_dirs`, `tests_dir`(`contract_tests_dir` 제외) | `contract_skill`<br>`contract_tests_dir`<br>**상태 파일 전부** | **필요** | **함** |
 | `issue-harness:integration-qa` | **`contract_tests_dir`**<br>`_workspace/` | `src_dirs`<br>`tests_dir` 나머지<br>**상태 파일 전부** | 불필요 | 안 함 |
 | `domain_agents`의 에이전트 | 각 항목의 `writes` | `src_dirs`, `tests_dir`<br>**상태 파일 전부** | 불필요 | 안 함 |

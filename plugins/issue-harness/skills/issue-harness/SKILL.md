@@ -203,6 +203,16 @@ Agent(subagent_type: "issue-harness:integration-qa",    name: "qa",       model:
 
 agent teams가 꺼졌거나 `-p` 세션이면 같은 호출이 서브에이전트로 돈다 — 통보는 오케스트레이터가 잇는다.
 
+**`3a` 계약 커밋** — `contract` 보고의 `contracts:`가 전부 `confirmed`이면 `3a-test` 전에 **오케스트레이터가 계약 정본을 커밋한다.**
+계약 테스트만 커밋하면 워크트리는 옛 계약과 새 계약 테스트를 함께 받는다.
+
+```bash
+git add .claude/skills/<contract_skill>/   # contract_skill이 null이면 <spec_dir>/issue-<N>.md (계약 절)
+git commit -m "docs : 이슈 #<N> 계약 — <계약명>[, <계약명>] confirmed"
+```
+
+바뀐 파일이 없으면 `--allow-empty`로 남긴다 — 진행 지점 복원이 이 커밋을 본다.
+
 **`3a-test`** — 계약이 `confirmed`가 되면 `qa`가 `contract_tests_dir`에 실패 테스트를 쓰고
 `contract_test_cmd`로 실패를 확인한다. 형태만 건다 — `issue-harness:verification-protocol` 「계약 TDD」.
 실패를 확인하면 **오케스트레이터가 커밋한다** — 워크트리는 HEAD에서 갈라지므로 커밋해야 구현자에게 간다.
@@ -214,7 +224,7 @@ git commit -m "test : 이슈 #<N> 계약 테스트 — <n>건 (실패 확인)"
 
 #### `3b-implement` ↔ `3c-incremental-qa`
 
-부르기 직전 `git branch --show-current`가 이슈 브랜치이고 spec(·계약 테스트) 커밋이 HEAD에 있는지 확인한다
+부르기 직전 `git branch --show-current`가 이슈 브랜치이고 spec(·계약·계약 테스트) 커밋이 HEAD에 있는지 확인한다
 (`.claude/settings.json`의 `worktree.baseRef: "head"`가 없으면 기본 브랜치에서 갈라진다).
 
 ```
@@ -261,6 +271,7 @@ spec을 발췌하지 않는다(워크트리에 있다). 완료 알림은 "끝났
 ### Phase 4: 최종 검증
 
 full은 팀원을 종료하고 서브에이전트로 검증한다 — 팀 안에서 검증하면 구현 맥락에 물든다.
+`4a`·`4b` 프롬프트에는 **구현 워크트리 경로**를 넣는다 — 검증자는 primary에서 돌고, 머지 전 primary에는 구현이 없다.
 
 **`4a-verify-blind`** (full만) — 명세를 주지 않는다. 프롬프트: `issue-harness:verification-protocol` 1단계.
 `model: <models.verify_blind>` → `_workspace/verify_<N>_blind.md`
