@@ -241,6 +241,14 @@ git branch -d worktree-agent-<id>                  # -d 로 한다. 미머지면
 
 Claude Code의 주기적 정리는 **커밋이 남은 워크트리를 지우지 않는다** — 직접 지운다.
 
+**이슈 워크트리 안에 구현자 워크트리가 있으면 그것부터 지운다.** 이슈 워크트리를 먼저 지우면
+안쪽 워크트리의 등록 정보와 `worktree-agent-*` 브랜치가 남는다. 놓쳤으면:
+
+```bash
+git worktree prune                  # 디렉터리가 사라진 워크트리 등록 정리
+git branch -d worktree-agent-<id>   # 남은 구현자 브랜치
+```
+
 지우기 전 확인:
 - 이슈 브랜치에 머지됐는가 (`git branch --merged <이슈브랜치>`에 나오는가)
 - gitignore된 산출물(`_workspace/` 등) 중 보존할 것이 없는가

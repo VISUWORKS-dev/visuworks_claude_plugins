@@ -149,11 +149,11 @@ Agent(
            범위 판정: issue-harness:scope-guard (+ 프로젝트 사례: <domain_skills.scope>).
            마감: <있으면 날짜>.
            <spec_dir>/issue-<N>.md 에 직접 써라(Write). 그 파일 하나만 쓴다.
-           보고는 짧게: 파일 경로, 항목 수, open_questions, 계약 공백. 본문을 붙이지 마라."
+           보고는 짧게: 파일 경로, 항목 수, open_questions, 계약 공백, scope_out. 본문을 붙이지 마라."
 )
 ```
 
-보고의 `open_questions`·계약 공백(blocker)을 `state.json`에 옮긴다. spec 본문은 파일에서 읽는다 —
+보고의 `open_questions`·계약 공백(blocker)을 `state.json`에 옮긴다. `scope_out:`은 `2b`로 가져간다. spec 본문은 파일에서 읽는다 —
 메시지 전달이 수백 행을 자른다.
 
 **`2b-human-questions`** — 한 게이트에서 셋을 받는다. `AskUserQuestion`, 항목별 선택지 2~4개.
@@ -161,6 +161,7 @@ Agent(
 - `TODO(확인필요)`·`open_questions`의 답 → `open_questions[].answer`
 - `## 테스트 목록` 승인 — 구현자는 기대값을 바꿀 수 없으므로 승인 없이 들어가면 사람이 확정하지 않은 기대값이 정본이 된다
 - 경로(full/light) 확인
+- `scope_out:`이 있으면 이슈 범위 밖 줄 갱신 승인 — 승인되면 `gh issue edit`으로 반영한다. 이슈가 범위의 정본이다
 
 지적을 받으면 spec을 고친다(`issue-planner` 재호출 또는 직접). `answer: null`이 남으면 `3b`로 가지 않는다.
 
