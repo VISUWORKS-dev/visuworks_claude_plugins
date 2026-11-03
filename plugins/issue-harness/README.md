@@ -4,7 +4,7 @@
 멀티 에이전트 하네스. 경계면 불일치를 마감 직전이 아니라 모듈 완성 직후에 잡는 것이 목표다.
 
 - 작업 단위: GitHub 이슈 = 워크트리 = PR
-- 진행 정본은 git 로그(spec·계약 테스트·`Tests: T<n>` 커밋·머지 커밋). `.harness/issue-<N>/state.json`은
+- 진행 정본은 git 로그(spec·계약·계약 테스트·`Tests: T<n>` 커밋·머지 커밋). `.harness/issue-<N>/state.json`은
   사람 질문·블로커·인계만(오케스트레이터만 씀), `events.jsonl`은 경과(훅만 append)
 - 구현자는 `isolation: worktree` 서브에이전트, 모듈 묶음마다 오케스트레이터가 "go". 항목마다 관련 테스트만, 묶음 끝에 `check_cmd` 1회
 - 경로 둘: **full**(계약 신설·변경) — 계약 테스트 선작성, 무컨텍스트 → 컨텍스트 2단계 검증.

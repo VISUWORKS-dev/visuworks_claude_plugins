@@ -89,6 +89,7 @@ python3 "${CLAUDE_PLUGIN_ROOT}/scripts/check-state.py"
 | spec이 있는가 | `test -f <spec_dir>/issue-<N>.md` | `2a` |
 | spec이 커밋됐는가 (사람 승인 후 커밋) | `git log --oneline --grep "^docs : 이슈 #<N> spec"` | `2b`·`2c` |
 | (full) 계약이 전부 `confirmed`인가 | `events.jsonl`의 마지막 `contract-guardian` 보고 `contracts:` 줄 | `3a` |
+| (full) 계약이 커밋됐는가 | `git log --oneline --grep "^docs : 이슈 #<N> 계약"` | `3a-contract` (계약 커밋) |
 | (full) 계약 테스트가 커밋됐는가 | `git log --oneline --grep "^test : 이슈 #<N> 계약 테스트"` | `3a-test` |
 | 구현 워크트리가 있는가 | `git branch --contains <spec 커밋> --list 'worktree-agent-*'` | `3b` 시작 |
 | 테스트 목록 항목이 전부 커밋됐는가 | `git -C <워크트리> log <spec 커밋>..HEAD --grep "^Tests: T" --format=%B` | `3b`↔`3c` |
@@ -200,7 +201,7 @@ HEAD에서 새로 갈라지므로 이전 워크트리 커밋이 없다:
 6. **light 이슈에서 계약 신설·변경이 필요해졌는가?** (구현자·`4b` 보고)
    → full로 올린다. 워크트리가 도는 동안 이슈 브랜치에 커밋하지 않으므로 순서를 지킨다:
    ① 구현자를 멈추고 끝난 묶음을 「별도 세션·죽은 에이전트」 1번처럼 부분 머지 ② spec `경로:`·`PR:` 수정 커밋 — PR 줄은 사람에게 다시 확인(`issue-harness:issue-harness` 「PR 줄」)
-   ③ `3a`→`3a-test`(계약 테스트 커밋) ④ 남은 묶음은 **새** 구현자 — 이전 워크트리는 계약 테스트를 모른다.
+   ③ `3a`(계약 커밋)→`3a-test`(계약 테스트 커밋) ④ 남은 묶음은 **새** 구현자 — 이전 워크트리는 계약 테스트를 모른다.
 7. **현재 단계의 산출물(위 표의 커밋·파일)이 생겼는가?**
    → 다음 단계로 간다. `3b` 안에서 묶음 하나가 끝났으면 full은 `3c`를 즉시 부른다.
 

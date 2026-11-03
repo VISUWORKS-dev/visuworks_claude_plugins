@@ -68,7 +68,7 @@ git commit -m "docs : 이슈 #<N> spec — 테스트 목록 <n>항목"
 
 ```bash
 git add <전달할 파일>
-git commit -m "docs : 이슈 #<번호> <전달 내용>"   # 계약 테스트 전달이면 test :
+git commit -m "docs : 이슈 #<번호> <전달 내용>"   # 계약은 "docs : 이슈 #<번호> 계약 — …", 계약 테스트는 test :
 ```
 
 ## 4. 워크트리 생성 · 구현자 실행
@@ -132,7 +132,7 @@ Claude Code 워크트리는 gitignore된 의존성 설치 디렉터리(가상환
 <타입> : <제목>      팀 전역 커밋 템플릿 형식
   feat · fix         기능 변경·버그 수정 — 꼬릿말 `Tests: T<n>[,T<m>]` 필수
   refact · style     동작 불변 정리·서식 — tests_dir 변경 금지
-  docs               spec 핸드오프 (오케스트레이터)
+  docs               spec·계약 핸드오프 (오케스트레이터)
   test               계약 테스트 핸드오프 (오케스트레이터)
   chore              설정·도구·로컬 머지
 ```
