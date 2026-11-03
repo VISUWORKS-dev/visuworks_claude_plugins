@@ -139,8 +139,8 @@ git hook·check-state(스크립트)가 같은 값을 읽어야 하고, 둘 다 �
     "workflow": "my-issue-order"         // 이슈 의존 순서 (1b-dependency-check)
   },
   "dependency_change": "human",          // 의존성 추가 주체. 현재 값은 human 하나 — 에이전트 금지 규칙의 근거
-  "pr_mode": { "light": "review", "full": "full" },  // 생략 가능. pr-writing 모드 — review 이상이면 4f-review
-  "push_pr": "human"                    // 생략 가능. orchestrator면 Phase 5에서 오케스트레이터가 push·PR
+  "pr_mode": { "light": "review", "full": "full" },  // 생략 가능. spec PR 줄의 모드 기본값 — review 이상이면 4f-review
+  "push_pr": "human"                    // 생략 가능. spec PR 줄의 push 기본값. PR 줄은 범위 산정 때 사람이 확정 — issue-harness 「PR 줄」
 }
 ```
 
