@@ -26,8 +26,8 @@ cat .claude/harness.config.json
 | `contract_skill` | 계약 정본 스킬. `null`이면 spec의 「이 이슈가 확정하는 계약」 절이 정본 |
 | `domain_agents` | 팀에 넣을 수 있는 프로젝트 에이전트와 결정 범위 |
 | `domain_skills.scope`·`.workflow` | 범위 판정 사례, 이슈 의존 순서 |
-| `pr_mode.light`·`.full` | `pr-writing` 모드(`basic`·`review`·`full`). 없으면 `basic` |
-| `push_pr` | `orchestrator`면 Phase 5에서 오케스트레이터가 push·PR 생성. 없거나 `human`이면 명령만 출력 |
+| `pr_mode.light`·`.full` | spec `PR:` 줄의 모드 기본값(`basic`·`review`·`full`). 없으면 `basic` |
+| `push_pr` | spec `PR:` 줄의 push 기본값 — `orchestrator`면 `push 자동`, 없거나 `human`이면 `push 사람` |
 
 에이전트에게는 필요한 값만 프롬프트에 담아 준다.
 
@@ -50,6 +50,10 @@ cat .claude/harness.config.json
 ## 경로 — full / light
 
 `1a`에서 이슈를 읽고 정한다. spec 머리의 `경로:` 줄에 적고 `2b` 승인 게이트에서 사람에게 함께 확인받는다.
+
+**PR 줄** — 경로와 같이 정한다. spec 머리 `PR: <basic|review|full> · push <자동|사람>`. 기본값은
+`pr_mode.<경로>`·`push_pr`이고, `2b`에서 사람이 확인해야 확정이다. Phase 5는 설정이 아니라 이 줄을 따른다.
+하네스 밖 작업은 `issue-harness:issue-workflow` 「범위 확정」.
 
 | 경로 | 이슈 | 생략하는 것 |
 |---|---|---|
@@ -122,7 +126,7 @@ cat .harness/issue-<N>/state.json
 1. 이슈 번호 확정. 불명확하면 `gh issue list`로 확인하고 묻는다.
 2. `gh issue view <N> --json title,body,parent,blockedBy` — 언급된 연관 이슈도 읽는다. `parent`가 있으면
    부모 스펙 이슈 본문도 읽는다(`gh issue view <parent.number> --json body` — `parent`에는 본문이 없다).
-   그 뒤 **경로(full/light)를 정한다.**
+   그 뒤 **경로(full/light)와 PR 줄을 정한다**(위 「경로」).
    **전제 확인** — 이슈 설명의 원인·전제("X라서 느리다", "기본값이 Y다")가 실행 기록·DB·로그로 확인 가능하면
    계획 전에 확인한다. 어긋나면 진행하지 않고 근거와 함께 사람에게 보고한다. 작업 중 어긋나는 증거를 봐도 같다 —
    기준선·방식 질문으로 돌리지 말고 전제 문제로 올린다.
@@ -144,7 +148,7 @@ Agent(
   subagent_type: "issue-harness:issue-planner",
   model: <models.plan>,
   prompt: "이슈 #<N>의 작업 계획을 작성한다. <이슈 본문>.
-           경로: <full|light> — spec 머리에 적는다.
+           경로: <full|light>, PR: <모드> · push <자동|사람> — spec 머리에 적는다.
            계약 정본: <contract_skill 또는 '없음 — spec에 계약 절을 쓴다'>.
            범위 판정: issue-harness:scope-guard (+ 프로젝트 사례: <domain_skills.scope>).
            마감: <있으면 날짜>.
@@ -160,7 +164,7 @@ Agent(
 
 - `TODO(확인필요)`·`open_questions`의 답 → `open_questions[].answer`
 - `## 테스트 목록` 승인 — 구현자는 기대값을 바꿀 수 없으므로 승인 없이 들어가면 사람이 확정하지 않은 기대값이 정본이 된다
-- 경로(full/light) 확인
+- 경로(full/light)와 PR 줄 확인 — 바꾸면 spec 머리를 고친다
 - `scope_out:`이 있으면 이슈 범위 밖 줄 갱신 승인 — 승인되면 `gh issue edit`으로 반영한다. 이슈가 범위의 정본이다
 
 지적을 받으면 spec을 고친다(`issue-planner` 재호출 또는 직접). `answer: null`이 남으면 `3b`로 가지 않는다.
@@ -285,7 +289,7 @@ git merge-base --is-ancestor origin/<기본 브랜치> HEAD || git merge --no-ff
 [ "$(git rev-parse HEAD^{tree})" = "$(git rev-parse <워크트리브랜치>^{tree})" ] || <check_cmd>
 ```
 
-**`4f-review`** — `pr_mode.<경로>`가 `review`·`full`일 때만. `4e` 뒤 이슈 브랜치에서 `pr-writing` 7절 리뷰를 실행하고
+**`4f-review`** — spec `PR:` 줄 모드가 `review`·`full`일 때만. `4e` 뒤 이슈 브랜치에서 `pr-writing` 7절 리뷰를 실행하고
 결과를 `_workspace/review_<N>.md`에 남긴다. 결함은 `SendMessage(to: "impl-<N>")`로 되돌리고 수정 커밋 뒤 `4c`·`4e`를 다시 한다
 (테스트 목록 대응이 바뀌면 `4b`도).
 
@@ -294,8 +298,8 @@ git merge-base --is-ancestor origin/<기본 브랜치> HEAD || git merge --no-ff
 1. `_workspace/`는 보존한다.
 2. `handoff_to_human`을 채우고 사용자에게 보고한다 — 검증된 완료, 미완료·블로커, 남은 `TODO(확인필요)`,
    사람이 실행할 명령. 워크트리 브랜치는 origin에 올리지 않는다.
-   PR 본문은 `pr-writing`으로 `_workspace/pr_<N>.md`에 쓴다. `push_pr: orchestrator`면 오케스트레이터가
-   `pr-writing` 0절의 모드 순서를 끝까지 따른다(6 push·PR → 9 인라인 코멘트) — 절 번호를 골라 부르지 않는다.
+   PR 본문은 `pr-writing`으로 `_workspace/pr_<N>.md`에 쓴다. spec `PR:` 줄이 `push 자동`이면 오케스트레이터가
+   묻지 않고 `pr-writing` 0절의 모드 순서를 끝까지 따른다(6 push·PR → 9 인라인 코멘트) — 절 번호를 골라 부르지 않는다.
    역할 에이전트는 여전히 push하지 않는다.
    보고는 완료한 단계마다 확인 가능한 증거를 단다 — 커밋 해시, `check_cmd` 결과 줄, 검증 보고서 경로,
    PR 링크, 인라인 코멘트 리뷰 URL. 증거가 없는 단계는 「안 함 — 이유」로 쓴다.
@@ -308,7 +312,7 @@ git merge-base --is-ancestor origin/<기본 브랜치> HEAD || git merge --no-ff
      gh pr create --base <기본 브랜치> --title "..." --body-file <경로>
    ```
 3. `ACTIVE`를 넘기거나 지운다.
-4. `pr_mode.<경로>`가 `full`이면 PR 뒤 같은 세션에서 `pr-writing` 8절 회고를 실행한다.
+4. spec `PR:` 줄 모드가 `full`이면 PR 뒤 같은 세션에서 `pr-writing` 8절 회고를 실행한다.
    `pr_mode`가 없으면 스킬 목록에 `mattpocock-skills:`가 보일 때 code-review·retro를 안내만 한다.
    PR 본문은 팀 `pr-writing`을 따른다(`mattpocock-skills:pr`을 쓰지 않는다).
 5. "결과나 팀 구성에서 바꾸고 싶은 점이 있나요?" — 강요하지 않는다.
@@ -330,7 +334,7 @@ git merge-base --is-ancestor origin/<기본 브랜치> HEAD || git merge --no-ff
 | `4a`가 명세를 요청 | 주지 않는다 |
 | `4a`·`4b` 불일치 | 임의 판정 금지. 근거와 함께 사람에게 보고 |
 | 구현자가 계약 테스트를 고치려 함 | 막는다. 구현을 고치거나 `contract-guardian`에게 판단 요청 |
-| light 중 계약 변경 필요 | full로 올린다 — 부분 머지 후 spec 수정·`3a`, 남은 묶음은 새 구현자 (`issue-harness:harness-state` 전이 규칙 6) |
+| light 중 계약 변경 필요 | full로 올린다. PR 줄도 `pr_mode.full`로 다시 확인받는다 — 부분 머지 후 spec 수정·`3a`, 남은 묶음은 새 구현자 (`issue-harness:harness-state` 전이 규칙 6) |
 
 ## 테스트 시나리오
 
