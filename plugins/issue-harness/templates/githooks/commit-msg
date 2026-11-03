@@ -24,7 +24,7 @@ from _harness import record, tests_dir  # noqa: E402
 TYPES = ("feat", "fix", "docs", "test", "refact", "style", "chore")
 TITLE = re.compile(rf"^({'|'.join(TYPES)}) ?: \S.*")
 TESTS_FOOTER = re.compile(r"^Tests: T\d+(,\s*T\d+)*\s*$")
-SKIP = re.compile(r"^(Merge |Revert |fixup!|squash!)")
+SKIP = re.compile(r"^(Revert |fixup!|squash!)")
 # 템플릿 주석 문자가 사람마다 다를 수 있다(core.commentChar). 정리되지 않은 주석 줄은 건너뛴다.
 COMMENT = re.compile(r"^\s*[#;]")
 CHANGE_FOOTER = re.compile(r"^Test-Change:\s*(\S+)\s+[—-]+\s*\S")
@@ -207,8 +207,9 @@ lines = [ln.rstrip() for ln in Path(sys.argv[1]).read_text(encoding="utf-8").spl
 lines = [ln for ln in lines if ln.strip()] or [""]
 first = lines[0].strip()
 
-# 머지는 각 커밋에서 이미 검사했다 — 기본 브랜치를 머지할 때 그쪽 테스트 정리가 다시 걸리면 안 된다
-if first.startswith("Merge "):
+# 머지는 각 커밋에서 이미 검사했다 — 기본 브랜치를 머지할 때 그쪽 테스트 정리가 다시 걸리면 안 된다.
+# 제목이 아니라 MERGE_HEAD로 판단한다 — 제목만 `Merge `로 쓴 일반 커밋은 면제하지 않는다
+if git("rev-parse", "-q", "--verify", "MERGE_HEAD").returncode == 0:
     sys.exit(0)
 
 # fixup!·squash!·Revert는 제목 규칙만 건너뛴다. autosquash는 훅을 다시 돌리지 않으므로 테스트 검사는 여기서 한다

@@ -156,6 +156,13 @@ if not hp:
 elif (root / hp).resolve() != (root / ".githooks").resolve():
     notes.append(f"core.hooksPath가 {hp!r}다 — .githooks의 commit-msg가 돌지 않는다. 직접 정한다")
 
+# 4b. 훅 파일은 커밋돼야 구현 워크트리·다른 클론에도 있다 — core.hooksPath가 상대 경로라 워크트리마다 자기 .githooks를 본다
+hooks = [dst for _, dst, _, _ in COPIES if dst.startswith(".githooks/")]
+_, tracked = git("ls-files", "--", *hooks)
+_, dirty = git("status", "--porcelain", "--", *hooks)
+if len(tracked.splitlines()) < len(hooks) or dirty:  # gitignore돼 있으면 status에 안 나온다
+    notes.append("`.githooks/`를 커밋한다 — 커밋 전엔 구현 워크트리에 훅이 없어 커밋 검사가 돌지 않는다")
+
 # 5. CLAUDE.md — 쓰지 않는다. 조각만 안내
 cm = root / "CLAUDE.md"
 if not cm.exists() or "issue-harness:issue-harness" not in cm.read_text(encoding="utf-8"):

@@ -564,8 +564,10 @@ KMTPA 레포(2026-10-26)에서 테스트가 제품 코드의 2.5배(함수 967�
   `pre-commit`이 아니라 `commit-msg`에서 검사한다.
 - 선언이 타당한지는 사람과 에이전트를 구분할 수 없는 훅이 아니라 4b 검증과 사람 리뷰가 대조한다.
   선언된 변경은 `git log --grep "^Test-Change:"`로 전부 드러난다.
+- 머지 커밋은 검사하지 않는다 — 각 커밋에서 이미 선언했다. 머지인지는 제목(`Merge `)이 아니라 `MERGE_HEAD`로 본다.
+  하네스 머지 제목은 `chore : …`라 제목으로는 못 거르고, 제목만 `Merge `로 쓴 일반 커밋이 면제되면 안 된다 (#26)
 - `--no-verify`가 필요 없어졌다. 차단 메시지에서도 안내하지 않는다. `permissions.deny`의 `--no-verify` 차단은 보조로 두고, 본 차단은 PreToolUse 훅이 한다(#19).
 - 이미 init한 프로젝트: init을 다시 돌린다. 하네스가 깐 그대로인 `.githooks/pre-commit`은 init이 지우고(#18),
   다른 `commit-msg`는 diff와 `cp` 명령만 보여준다. 교체와 삭제 커밋은 사람이 한다.
-- 시나리오 검사: `tests/githooks_scenarios.sh <githooks 디렉터리>`. `PY=/usr/bin/python3`로 macOS 기본 3.9도 확인한다
+- 시나리오 검사: `tests/githooks_scenarios.sh <githooks 디렉터리>`(`templates/githooks`). 인자가 없으면 사용법 오류로 끝난다. `PY=/usr/bin/python3`로 macOS 기본 3.9도 확인한다
 - init 업그레이드(옛 `pre-commit` 제거 등): `tests/init_scenarios.sh` (#18)

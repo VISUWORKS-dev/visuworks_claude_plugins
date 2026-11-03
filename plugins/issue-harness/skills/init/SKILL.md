@@ -21,7 +21,7 @@ python3 "${CLAUDE_PLUGIN_ROOT}/scripts/init.py" $ARGUMENTS
 - **다름(건드리지 않음)** — 이미 있고 템플릿과 다른 파일. diff가 함께 출력된다. 덮어쓰지 않았다.
   어느 쪽을 쓸지는 사람이 정한다. 종료 코드 1이 이 경우다.
 - **직접 할 것** — `settings.json`에 넣을 키, `.gitignore`에 넣을 줄, `core.hooksPath` 충돌,
-  `CLAUDE.md`에 붙일 조각 경로. 사람이 요청하지 않으면 이 파일들을 고치지 않는다.
+  커밋되지 않은 `.githooks/`(커밋 전엔 구현 워크트리에 훅이 없다), `CLAUDE.md`에 붙일 조각 경로. 사람이 요청하지 않으면 이 파일들을 고치지 않는다.
 
 출력 원문을 줄이지 말고 보여준 뒤, 다음 단계를 한 줄로 안내한다:
 `.claude/harness.config.json`의 값(`check_cmd`, `src_dirs`, `tests_dir`, `contract_skill`,
