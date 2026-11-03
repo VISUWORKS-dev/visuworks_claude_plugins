@@ -51,9 +51,16 @@ cat .claude/harness.config.json
 
 `1a`에서 이슈를 읽고 정한다. spec 머리의 `경로:` 줄에 적고 `2b` 승인 게이트에서 사람에게 함께 확인받는다.
 
-**PR 줄** — 경로와 같이 정한다. spec 머리 `PR: <basic|review|full> · push <자동|사람>`. 기본값은
-`pr_mode.<경로>`·`push_pr`이고, `2b`에서 사람이 확인해야 확정이다. Phase 5는 설정이 아니라 이 줄을 따른다.
-하네스 밖 작업은 `issue-harness:issue-workflow` 「범위 확정」.
+**PR 줄** — 경로와 같이 범위 산정 때 정한다. 형식은 이 한 곳이 정본이다:
+
+```
+PR: <basic|review|full> · push <자동|사람>
+```
+
+기본값은 모드 `pr_mode.<경로>`, push `push_pr`(`orchestrator`→자동, 그 밖→사람). 설정이 없으면 `basic · push 사람`.
+`2b`에서 사람이 확인해야 확정이다. 미확정이면 push하지 않는다. Phase 5는 설정이 아니라 확정된 줄을 따른다.
+light→full로 오르면 모드만 `pr_mode.full`로 다시 제안하고 push는 확정값을 유지한 채 다시 확인받는다.
+하네스 밖 작업은 `issue-harness:issue-workflow` 「범위 산정」.
 
 | 경로 | 이슈 | 생략하는 것 |
 |---|---|---|
@@ -313,7 +320,7 @@ git merge-base --is-ancestor origin/<기본 브랜치> HEAD || git merge --no-ff
    ```
 3. `ACTIVE`를 넘기거나 지운다.
 4. spec `PR:` 줄 모드가 `full`이면 PR 뒤 같은 세션에서 `pr-writing` 8절 회고를 실행한다.
-   `pr_mode`가 없으면 스킬 목록에 `mattpocock-skills:`가 보일 때 code-review·retro를 안내만 한다.
+   PR 줄 모드가 `basic`이면 스킬 목록에 `mattpocock-skills:`가 보일 때 code-review·retro를 안내만 한다.
    PR 본문은 팀 `pr-writing`을 따른다(`mattpocock-skills:pr`을 쓰지 않는다).
 5. "결과나 팀 구성에서 바꾸고 싶은 점이 있나요?" — 강요하지 않는다.
 
@@ -334,7 +341,7 @@ git merge-base --is-ancestor origin/<기본 브랜치> HEAD || git merge --no-ff
 | `4a`가 명세를 요청 | 주지 않는다 |
 | `4a`·`4b` 불일치 | 임의 판정 금지. 근거와 함께 사람에게 보고 |
 | 구현자가 계약 테스트를 고치려 함 | 막는다. 구현을 고치거나 `contract-guardian`에게 판단 요청 |
-| light 중 계약 변경 필요 | full로 올린다. PR 줄도 `pr_mode.full`로 다시 확인받는다 — 부분 머지 후 spec 수정·`3a`, 남은 묶음은 새 구현자 (`issue-harness:harness-state` 전이 규칙 6) |
+| light 중 계약 변경 필요 | full로 올린다. PR 줄도 다시 확인받는다(「PR 줄」) — 부분 머지 후 spec 수정·`3a`, 남은 묶음은 새 구현자 (`issue-harness:harness-state` 전이 규칙 6) |
 
 ## 테스트 시나리오
 

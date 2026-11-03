@@ -127,7 +127,7 @@ tracked 파일이다. 오케스트레이터·에이전트(모델)와 git hook(�
   },
   "dependency_change": "human",            // 의존성 추가는 사람만
   "pr_mode": { "light": "review", "full": "full" },  // spec PR 줄의 모드 기본값 basic·review·full. 생략하면 basic
-  "push_pr": "human"                      // spec PR 줄의 push 기본값. orchestrator면 push 자동. 생략하면 human. 범위 산정 때 사람이 확정
+  "push_pr": "human"                      // spec PR 줄의 push 기본값. orchestrator면 push 자동. 생략하면 human. PR 줄은 범위 산정 때 사람이 확정 — issue-harness 「PR 줄」
 }
 ```
 
