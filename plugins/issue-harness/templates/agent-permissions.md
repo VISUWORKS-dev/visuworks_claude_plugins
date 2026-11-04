@@ -16,7 +16,7 @@ issue-harness 플러그인의 역할 에이전트가 **쓸 수 있는 경로**�
 | `issue-harness:integration-qa` | **`contract_tests_dir`**<br>`_workspace/` | `src_dirs`<br>`tests_dir` 나머지<br>**상태 파일 전부** | 불필요 | 안 함 |
 | `domain_agents`의 에이전트 | 각 항목의 `writes` | `src_dirs`, `tests_dir`<br>**상태 파일 전부** | 불필요 | 안 함 |
 
-전원 공통 금지: **상태 파일 전부**(`state.json`·`events.jsonl`·`ACTIVE`), `git push`,
+전원 공통 금지: **상태 파일 전부**(`state.json`·`events.jsonl`), `git push`,
 PR 생성, **머지**(로컬 머지·기본 브랜치 머지 둘 다), 의존성 변경, `.claude/rules/`, `.gitignore`,
 `.githooks/`, CI 설정. (`issue-harness:issue-workflow` 7·8절)
 

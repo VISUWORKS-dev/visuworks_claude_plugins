@@ -106,11 +106,12 @@ light→full로 오르면 모드 질문만 `pr_mode.full`을 추천안으로 다
 - 에이전트는 상태 파일을 쓰지 않는다. 보고에 적고 오케스트레이터가 옮긴다.
 - 에이전트가 끝날 때마다: 보고 읽기 → 블로커·질문을 `state.json`에 옮기기 → `check-state.py` →
   진행 지점 복원 → 전이 규칙 1번부터.
-- 이슈 착수 시 `state.json`이 없으면 초기화하고 `ACTIVE`를 쓴다(`--init <N>`). 끝나면 `ACTIVE`를 넘기거나 지운다.
+- 이슈 착수 시 `state.json`이 없으면 초기화한다(`--init <N>`). 활성 이슈는 현재 브랜치로 정해진다(`issue-harness:harness-state`
+  「파일 셋 — 누가 쓰는가」) — 이슈 브랜치에서 돌린다.
 
 ```bash
-python3 "${CLAUDE_PLUGIN_ROOT}/scripts/check-state.py"            # 검사
-python3 "${CLAUDE_PLUGIN_ROOT}/scripts/check-state.py" --init <N>   # 초기화 + ACTIVE — 이미 있으면 덮어쓰지 않는다
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/check-state.py"            # 검사 — 현재 브랜치의 이슈
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/check-state.py" --init <N>   # 초기화 — 이미 있으면 덮어쓰지 않는다
 ```
 
 훅은 기계적 게이트(커밋 메시지 형식, 테스트 변경 선언, 종료 기록)에만 쓴다. 다음 에이전트 판단은
@@ -123,13 +124,13 @@ python3 "${CLAUDE_PLUGIN_ROOT}/scripts/check-state.py" --init <N>   # 초기화 
 ```bash
 git status --short --branch
 pwd
-cat .harness/ACTIVE
-cat .harness/issue-<N>/state.json
+cat "$(git rev-parse --path-format=absolute --git-common-dir)/../.harness/issue-<N>/state.json"
 ```
 
 그 뒤 `issue-harness:harness-state` 「진행 지점 복원」으로 위치를 정하고 거기서 이어 간다.
 끝난 단계를 다시 하지 않는다. 단 `integration-qa`의 "수정했다"는 재확인한다.
-`ACTIVE`가 요청받은 이슈와 다르면 이전 이슈 상태를 확인하고 넘긴다.
+현재 브랜치가 요청받은 이슈 브랜치(`<N>-…`)가 아니면 Phase 1의 4(브랜치)를 한 뒤 「진행 지점 복원」으로 돌아간다.
+`state.json`이 없을 때만 6(초기화)도 한다. 다른 이슈 브랜치의 작업은 그 세션의 것이므로 건드리지 않는다.
 
 부분 재실행("QA만 다시")은 해당 에이전트만 부르고, 이전 산출물 경로를 프롬프트에 넣는다.
 
@@ -149,7 +150,7 @@ cat .harness/issue-<N>/state.json
    있으므로 먼저를 고르면 멈춘다. 보이지 않으면 묻지 않는다.
 4. 이슈 브랜치 확인·생성 (`branch_pattern`).
 5. `_workspace/` 생성 (갱신 실행이면 기존 것을 `_workspace_<타임스탬프>/`로 옮긴다).
-6. `state.json` 초기화, `ACTIVE` 기록 — **`state.json`이 없을 때만** `check-state.py --init <N>` 한 번. 형식을 손으로 쓰지 않는다.
+6. `state.json` 초기화 — **`state.json`이 없을 때만** `check-state.py --init <N>` 한 번. 형식을 손으로 쓰지 않는다.
    있으면 Phase 1을 다시 도는 것이다 — 초기화하지 않는다(답이 든 질문이 지워진다).
 
 ### Phase 2: 계획
@@ -361,11 +362,10 @@ git merge-base --is-ancestor origin/<기본 브랜치> HEAD || git merge --no-ff
      git push -u origin <이슈브랜치>
      gh pr create --base <기본 브랜치> --title "..." --body-file <경로>
    ```
-3. `ACTIVE`를 넘기거나 지운다.
-4. spec `PR:` 줄 모드가 `full`이면 PR 뒤 같은 세션에서 `pr-writing` 8절 회고를 실행한다.
+3. spec `PR:` 줄 모드가 `full`이면 PR 뒤 같은 세션에서 `pr-writing` 8절 회고를 실행한다.
    PR 줄 모드가 `basic`이면 스킬 목록에 `mattpocock-skills:`가 보일 때 code-review·retro를 안내만 한다.
    PR 본문은 팀 `pr-writing`을 따른다(`mattpocock-skills:pr`을 쓰지 않는다).
-5. "결과나 팀 구성에서 바꾸고 싶은 점이 있나요?" — 강요하지 않는다.
+4. "결과나 팀 구성에서 바꾸고 싶은 점이 있나요?" — 강요하지 않는다.
 
 ## 에러 핸들링
 

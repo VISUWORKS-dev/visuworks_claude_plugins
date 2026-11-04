@@ -13,6 +13,7 @@ import difflib
 import hashlib
 import json
 import pathlib
+import re
 import subprocess
 import sys
 
@@ -105,16 +106,22 @@ for k, why in (("models", "역할별 모델, 없으면 model"), ("test_file_cmd"
 # 정본은 primary에 있다 — 워크트리에서 돌아도 primary를 본다 (check-state.py primary_root와 같은 방식)
 _, common = git("rev-parse", "--path-format=absolute", "--git-common-dir")
 prim = pathlib.Path(common).parent if common else root
+# 진행 중인 이슈는 현재 브랜치 `<N>-<slug>`로 판정한다 (check-state.py active_issue의 이슈 브랜치 경우만)
+_, branch = git("branch", "--show-current")
+m = re.match(r"([1-9][0-9]*)-", branch)
+name = f"issue-{m.group(1)}" if m else None
 try:
-    name = (prim / ".harness/ACTIVE").read_text(encoding="utf-8").strip()
-    st = prim / ".harness" / name / "state.json"
-    d = json.loads(st.read_text(encoding="utf-8")) if name and "/" not in name and ".." not in name else {}
+    d = json.loads((prim / ".harness" / name / "state.json").read_text(encoding="utf-8")) if name else {}
     old = isinstance(d, dict) and bool(set(d) - STATE_KEYS)
 except Exception:
     old = False
 if old:
     notes.append(f"경고: .harness/{name}/state.json가 옛 형식(phase 등)이다 — 진행 중인 이슈를 옛 버전으로 "
                  "끝낸 뒤 업그레이드한다. 새 check-state.py가 이 파일을 거부한다")
+
+# 1e. 옛 ACTIVE — 이제 브랜치로 판정한다. 남겨 두면 업그레이드 전 브랜치의 옛 _harness.py가 계속 그 이슈에 기록한다
+if (prim / ".harness/ACTIVE").exists():
+    notes.append(f"{prim / '.harness/ACTIVE'}는 더 쓰지 않는다 — 활성 이슈는 현재 브랜치로 정한다. 지운다")
 
 # 2. settings.json — 없으면 만들고, 있으면 빠진 키만 보여준다
 sp = root / ".claude/settings.json"

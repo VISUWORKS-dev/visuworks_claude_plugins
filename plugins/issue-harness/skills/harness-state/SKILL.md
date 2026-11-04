@@ -55,7 +55,6 @@ description: "하네스의 실행 상태 정본 — `.harness/issue-<N>/state.js
 
 ```
 .harness/
-├── ACTIVE            # 작업 중인 이슈 디렉터리 이름 한 줄 (예: issue-12)
 └── issue-N/
     ├── state.json    # 오케스트레이터만 쓴다
     └── events.jsonl  # 훅만 append
@@ -65,7 +64,12 @@ description: "하네스의 실행 상태 정본 — `.harness/issue-<N>/state.js
 |---|---|---|
 | `state.json` | **오케스트레이터만** | 읽고-고치고-쓴다. 기억으로 재구성해 덮어쓰지 않는다. `updated_at` 갱신 |
 | `events.jsonl` | **훅만** — `SubagentStop`·`PostToolUse(SendMessage)` 플러그인 훅, git hook | append 전용. 오케스트레이터는 읽기만 한다 |
-| `ACTIVE` | 오케스트레이터 | 이슈 시작 시 쓰고, 끝나면(`5b` 이후) 다음 이슈로 바꾸거나 지운다 |
+
+**활성 이슈는 현재 브랜치로 정한다.** 이슈 브랜치 `<N>-<slug>`는 `issue-<N>`, 구현 워크트리
+(`worktree-agent-*`)는 HEAD의 first-parent 이력에서 가장 최근 `docs : 이슈 #<N> spec` 커밋의 `issue-<N>`이다.
+이슈 브랜치 이름은 반드시 `<N>-<slug>`로 시작한다 — 다른 이름이면 검사가 실패하고 훅이 기록하지 않는다. 공용 파일 한 칸에 적지 않는다 —
+같은 primary를 쓰는 병렬 세션이 서로 덮어쓴다. 그 이슈에 `state.json`이 없으면 하네스 밖이다(훅은 기록하지 않는다).
+판정은 `check-state.py`·`record-agent-event.py`·`.githooks/_harness.py`의 `active_issue`가 같은 방식으로 한다.
 
 **에이전트는 어떤 상태 파일도 쓰지 않는다.** 발견한 `blockers`·`open_questions`는 최종 보고에 적고
 오케스트레이터가 옮긴다.
@@ -149,7 +153,8 @@ HEAD에서 새로 갈라지므로 이전 워크트리 커밋이 없다:
 
 - `msg`는 원문 전체다. 훅은 파싱하지 않는다 — 형식이 어긋나도 기록은 남는다.
 - 오케스트레이터(메인 스레드)의 메시지는 기록하지 않는다(`agent_id` 없음).
-- 하네스 밖(git 레포 아님, `ACTIVE` 없음)이면 로그도 없이 끝난다. 대상 이슈는 `ACTIVE`로만 정한다.
+- 하네스 밖(git 레포 아님, 현재 브랜치 이슈의 `state.json` 없음)이면 로그도 없이 끝난다. 대상 이슈는 페이로드 `cwd`의
+  현재 브랜치로만 정한다(「파일 셋 — 누가 쓰는가」 **활성 이슈는 현재 브랜치로 정한다**).
 - 내장 에이전트(`general-purpose`·`Explore`·`Plan` 등)만 제외한다. 팀원은 `agent_type`에 타입 대신
   **이름**이 오므로 화이트리스트를 쓰지 않는다.
 - 워크트리에서 돌아도 `--git-common-dir`로 primary의 `.harness/`에만 쓴다.
@@ -214,7 +219,7 @@ HEAD에서 새로 갈라지므로 이전 워크트리 커밋이 없다:
 
 ## 초기화
 
-이슈 착수 시 오케스트레이터가 `check-state.py --init <N>`으로 만든다 — 아래 블록을 쓰고 `ACTIVE`에 `issue-<N>`을 쓴다.
+이슈 착수 시 오케스트레이터가 `check-state.py --init <N>`으로 만든다 — 아래 블록을 쓴다. 이슈 브랜치에서 부른다 — 검사가 브랜치로 이슈를 찾는다.
 **`state.json`이 없을 때만** 부른다. 있으면 초기화하지 않고 Phase 0으로 이어 간다 — 답이 든 질문·블로커가 남아 있다
 (스크립트도 덮어쓰지 않고 실패한다):
 
