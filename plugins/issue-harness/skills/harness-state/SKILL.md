@@ -98,7 +98,8 @@ python3 "${CLAUDE_PLUGIN_ROOT}/scripts/check-state.py"
 | 로컬 머지됐는가 | `git log --oneline --grep "^chore : 워크트리 브랜치를 이슈 브랜치에 반영한다 (#<N>)"` | `4c`~`4e` |
 | `handoff_to_human`이 채워졌는가 | `state.json` | `5` |
 
-`<spec 커밋>` = `git log -1 --format=%H --grep "^docs : 이슈 #<N> spec"`. **범위 없이 `Tests:`를 세지 않는다** — 기본 브랜치에
+`<spec 커밋>` = **첫** spec 커밋 — `git log --reverse --format=%H --grep "^docs : 이슈 #<N> spec" | head -1`.
+마지막 spec 커밋을 쓰면 spec을 다시 커밋했을 때 그 앞의 `Tests:`가 범위에서 빠진다. **범위 없이 `Tests:`를 세지 않는다** — 기본 브랜치에
 다른 이슈의 `Tests: T1`이 이미 있어 끝나지 않은 항목이 끝난 것으로 보인다.
 
 경로(`full`/`light`)는 spec 머리의 `경로:` 줄이다. `(full)` 행은 `light`이면 건너뛴다.
@@ -111,6 +112,11 @@ python3 "${CLAUDE_PLUGIN_ROOT}/scripts/check-state.py"
 모든 항목이 들어간 묶음이 끝난 묶음이다.
 
 `events.jsonl` 마지막 20줄은 단계 안에서 무슨 일이 있었는지(막힘·실패 사유) 볼 때만 읽는다.
+
+**재개 때 다시 하는 것.**
+- 컴팩션 뒤에는 `issue-harness:issue-harness`와 이 스킬을 다시 읽는다 — 요약에는 표·전이 규칙이 남지 않는다.
+- (full) `3b`↔`3c`에서 재개하면 다음 go 전에 끝난 마지막 묶음의 `3c`를 1회 다시 부른다. `3c`는 커밋을 남기지 않아
+  돌았는지 위 표로 알 수 없다.
 
 ### 별도 세션·죽은 에이전트
 
@@ -209,7 +215,8 @@ HEAD에서 새로 갈라지므로 이전 워크트리 커밋이 없다:
 ## 초기화
 
 이슈 착수 시 오케스트레이터가 `check-state.py --init <N>`으로 만든다 — 아래 블록을 쓰고 `ACTIVE`에 `issue-<N>`을 쓴다.
-이미 있으면 덮어쓰지 않는다(이어서 하면 Phase 0):
+**`state.json`이 없을 때만** 부른다. 있으면 초기화하지 않고 Phase 0으로 이어 간다 — 답이 든 질문·블로커가 남아 있다
+(스크립트도 덮어쓰지 않고 실패한다):
 
 ```json
 { "issue": <N>, "updated_at": "<ISO8601>", "open_questions": [], "blockers": [], "handoff_to_human": [] }

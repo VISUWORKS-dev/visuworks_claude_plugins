@@ -49,18 +49,22 @@ cat .claude/harness.config.json
 
 ## 경로 — full / light
 
-`1a`에서 이슈를 읽고 정한다. spec 머리의 `경로:` 줄에 적고 `2b` 승인 게이트에서 사람에게 함께 확인받는다.
+`1a`에서 이슈를 읽고 추천안을 정한 뒤 「시작 설정 질문」으로 사람이 고른다. spec 머리의 `경로:` 줄에 적는다.
 
-**PR 줄** — 경로와 같이 범위 산정 때 정한다. 형식은 이 한 곳이 정본이다:
+**PR 줄** — 경로와 같이 시작 설정 질문으로 정한다. 형식은 이 한 곳이 정본이다:
 
 ```
 PR: <basic|review|full> · push <자동|사람>
 ```
 
-기본값은 모드 `pr_mode.<경로>`, push `push_pr`(`orchestrator`→자동, 그 밖→사람). 설정이 없으면 `basic · push 사람`.
-`2b`에서 사람이 확인해야 확정이다. 미확정이면 push하지 않는다. Phase 5는 설정이 아니라 확정된 줄을 따른다.
-light→full로 오르면 모드만 `pr_mode.full`로 다시 제안하고 push는 확정값을 유지한 채 다시 확인받는다.
+추천 기본값은 모드 `pr_mode.<경로>`, push `push_pr`(`orchestrator`→자동, 그 밖→사람). 설정이 없으면 `basic · push 사람`.
+사람이 골라야 확정이다. 미확정이면 push하지 않는다. Phase 5는 설정이 아니라 확정된 줄을 따른다.
+light→full로 오르면 모드 질문만 `pr_mode.full`을 추천안으로 다시 묻는다. push는 확정값을 유지한다.
 하네스 밖 작업은 `issue-harness:issue-workflow` 「범위 산정」.
+
+**시작 설정 질문** — Phase 1 전제 확인 직후 `AskUserQuestion` 한 번에 질문 3개(경로·PR 모드·push)를 따로 담는다.
+한 항목으로 묶으면 하나만 바꾸고 싶어도 고를 수 없다. 질문마다 추천안을 첫 선택지에 두고 라벨 끝에 `(Recommended)`,
+설명에 근거(이슈 유형·설정값)를 적는다. 고른 값이 확정이다 — `2b`에서 다시 묻지 않는다.
 
 | 경로 | 이슈 | 생략하는 것 |
 |---|---|---|
@@ -102,7 +106,7 @@ light→full로 오르면 모드만 `pr_mode.full`로 다시 제안하고 push�
 - 에이전트는 상태 파일을 쓰지 않는다. 보고에 적고 오케스트레이터가 옮긴다.
 - 에이전트가 끝날 때마다: 보고 읽기 → 블로커·질문을 `state.json`에 옮기기 → `check-state.py` →
   진행 지점 복원 → 전이 규칙 1번부터.
-- 이슈 착수 시 `state.json`을 초기화하고 `ACTIVE`를 쓴다(`--init <N>`). 끝나면 `ACTIVE`를 넘기거나 지운다.
+- 이슈 착수 시 `state.json`이 없으면 초기화하고 `ACTIVE`를 쓴다(`--init <N>`). 끝나면 `ACTIVE`를 넘기거나 지운다.
 
 ```bash
 python3 "${CLAUDE_PLUGIN_ROOT}/scripts/check-state.py"            # 검사
@@ -134,10 +138,10 @@ cat .harness/issue-<N>/state.json
 1. 이슈 번호 확정. 불명확하면 `gh issue list`로 확인하고 묻는다.
 2. `gh issue view <N> --json title,body,parent,blockedBy` — 언급된 연관 이슈도 읽는다. `parent`가 있으면
    부모 스펙 이슈 본문도 읽는다(`gh issue view <parent.number> --json body` — `parent`에는 본문이 없다).
-   그 뒤 **경로(full/light)와 PR 줄을 정한다**(위 「경로」).
    **전제 확인** — 이슈 설명의 원인·전제("X라서 느리다", "기본값이 Y다")가 실행 기록·DB·로그로 확인 가능하면
    계획 전에 확인한다. 어긋나면 진행하지 않고 근거와 함께 사람에게 보고한다. 작업 중 어긋나는 증거를 봐도 같다 —
    기준선·방식 질문으로 돌리지 말고 전제 문제로 올린다.
+   그 직후 **경로(full/light)와 PR 줄을 묻는다**(위 「시작 설정 질문」).
 3. 선행 이슈 — `blockedBy`에 열린 이슈가 있으면 사용자에게 확인한다. `domain_skills.workflow`가 있으면 의존 순서도 본다.
    선행 계약이 미확정이면 사용자에게 확인한다.
    이슈가 모호하고 스킬 목록에 `mattpocock-skills:` 접두 스킬(예: `mattpocock-skills:tdd`)이 보이면
@@ -145,7 +149,8 @@ cat .harness/issue-<N>/state.json
    있으므로 먼저를 고르면 멈춘다. 보이지 않으면 묻지 않는다.
 4. 이슈 브랜치 확인·생성 (`branch_pattern`).
 5. `_workspace/` 생성 (갱신 실행이면 기존 것을 `_workspace_<타임스탬프>/`로 옮긴다).
-6. `state.json` 초기화, `ACTIVE` 기록 — `check-state.py --init <N>` 한 번. 형식을 손으로 쓰지 않는다.
+6. `state.json` 초기화, `ACTIVE` 기록 — **`state.json`이 없을 때만** `check-state.py --init <N>` 한 번. 형식을 손으로 쓰지 않는다.
+   있으면 Phase 1을 다시 도는 것이다 — 초기화하지 않는다(답이 든 질문이 지워진다).
 
 ### Phase 2: 계획
 
@@ -172,7 +177,6 @@ Agent(
 
 - `TODO(확인필요)`·`open_questions`의 답 → `open_questions[].answer`
 - `## 테스트 목록` 승인 — 구현자는 기대값을 바꿀 수 없으므로 승인 없이 들어가면 사람이 확정하지 않은 기대값이 정본이 된다
-- 경로(full/light)와 PR 줄 확인 — 바꾸면 spec 머리를 고친다
 - `scope_out:`이 있으면 이슈 범위 밖 줄 갱신 승인 — 승인되면 `gh issue edit`으로 반영한다. 이슈가 범위의 정본이다
 
 지적을 받으면 spec을 고친다(`issue-planner` 재호출 또는 직접). `answer: null`이 남으면 `3b`로 가지 않는다.
@@ -364,7 +368,7 @@ git merge-base --is-ancestor origin/<기본 브랜치> HEAD || git merge --no-ff
 | 상황 | 전략 |
 |---|---|
 | `.claude/harness.config.json` 없음 | 멈추고 `/issue-harness:init` 안내 |
-| 팀원 1명 실패 | 1회 재시작. 재실패 시 남은 팀원에게 재할당하고 보고서에 누락 명시 |
+| 팀원 1명 실패 | 1회 재시작. 재실패 시 사용자에게 확인 — 남은 팀원은 권한이 달라 그 일을 대신할 수 없다 |
 | 팀원 과반 실패 | 중단하고 사용자에게 확인 |
 | `check_cmd` 실패 | 고친다. 테스트를 지우거나 skip하지 않는다 |
 | 계약과 구현 충돌 | 임의 판정 금지. 더 많은 소비자가 따르는 쪽을 제안하고 사용자에게 보고 |
@@ -380,8 +384,8 @@ git merge-base --is-ancestor origin/<기본 브랜치> HEAD || git merge --no-ff
 
 ## 테스트 시나리오
 
-**full:** "이슈 12 시작" → spec 없음 → 계약 신설 이슈라 full → `issue-planner` spec, `TODO(확인필요)` 3건 →
-`AskUserQuestion`으로 답·테스트 목록·경로 승인 → spec 커밋 → 팀(`contract`·`qa`) 계약 확정 → `qa` 실패 테스트 → 커밋 →
+**full:** "이슈 12 시작" → spec 없음 → 계약 신설 이슈라 full 추천 → 질문 3개로 경로·PR 모드·push 확정 →
+`issue-planner` spec, `TODO(확인필요)` 3건 → `AskUserQuestion`으로 답·테스트 목록 승인 → spec 커밋 → 팀(`contract`·`qa`) 계약 확정 → `qa` 실패 테스트 → 커밋 →
 `implementer` 묶음 1 → `3c` → `SendMessage` 묶음 2 … → `4a` → `4b` → 워크트리에서 `check_cmd` → 머지(트리 같음, 재실행 생략) →
 push 명령 출력.
 

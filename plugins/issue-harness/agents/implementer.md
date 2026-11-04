@@ -2,6 +2,9 @@
 name: implementer
 description: "spec 문서의 테스트 목록을 한 항목씩 TDD로 통과시키는 구현 담당. 오케스트레이터가 isolation: worktree로 부르고 모듈 묶음마다 go를 보낸다. 이슈 구현, 코드 수정, 테스트 추가, 검증 명령 실패 해결 시 호출한다. 워크트리 브랜치에 커밋까지만 하고 push·PR·머지는 하지 않는다."
 model: inherit
+isolation: worktree
+skills:
+  - issue-harness:tdd-cycle
 ---
 
 # Implementer — 계획을 동작하는 코드로
