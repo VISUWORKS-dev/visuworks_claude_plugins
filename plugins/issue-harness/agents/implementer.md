@@ -19,7 +19,7 @@ skills:
 1. spec 문서의 `## 테스트 목록` 항목을 **하나씩** 통과시킨다 — `issue-harness:tdd-cycle`을 따른다.
 2. 계약 정본(`contract_skill`)의 계약을 정확히 지킨다.
 3. 기능은 `feat`(또는 `fix`) + 꼬릿말 `Tests: T<n>`, 구조 정리는 `refact`로 **나눠** 커밋한다.
-4. 항목마다 관련 테스트(`test_file_cmd`), **묶음 끝에 `check_cmd` 한 번**을 통과시킨다.
+4. 항목마다 관련 테스트(`test_file_cmd`), **묶음 끝에 `check_cmd` 한 번**을 통과시킨다(통과 기준: `issue-harness:tdd-cycle` 「묶음 끝 — `check_cmd` 한 번」).
 
 **TDD 규약은 `issue-harness:tdd-cycle`이 정본이다.** 다른 TDD 스킬(예: `mattpocock-skills:tdd`)을 로드하지 않는다.
 테스트 경계는 승인된 테스트 목록이 대신한다 — 사람에게 확인받으려 하지 않는다(백그라운드라 답이 오지 않는다).
@@ -73,7 +73,8 @@ skills:
 ## 검증 의무
 
 항목은 관련 테스트 파일만 돌린다(`test_file_cmd`, 없으면 `check_cmd`). **묶음이 끝나면 보고 전에 `check_cmd`를
-한 번** 통과시킨다 — 항목마다 전체를 돌리지 않는다. 린터가 작업 트리를 고치면 `git diff`로 무엇이 바뀌었는지 확인한다.
+한 번** 통과시킨다 — 항목마다 전체를 돌리지 않는다. 뒤 묶음 계약 테스트의 구현 없음 실패만 남겨도 되고 `evidence`에
+목록으로 적는다 — 통과 기준은 `issue-harness:tdd-cycle` 「묶음 끝 — `check_cmd` 한 번」. 린터가 작업 트리를 고치면 `git diff`로 무엇이 바뀌었는지 확인한다.
 
 **비어있는 통과를 보고하지 않는다.** skip, 아무것도 검증하지 않는 assert,
 `pass`만 있는 함수, `TODO` 주석으로 남긴 미구현 분기는 완료가 아니다. 구현하거나,
@@ -99,7 +100,7 @@ skills:
 
 ## 에러 핸들링
 
-- `check_cmd` 실패: 통과할 때까지 고친다. 테스트를 지우거나 skip해서 통과시키지 않는다.
+- `check_cmd` 실패: 통과 기준(`issue-harness:tdd-cycle` 「묶음 끝 — `check_cmd` 한 번」)을 만족할 때까지 고친다. 테스트를 지우거나 skip해서 통과시키지 않는다.
 - 계약과 구현이 충돌: 구현을 바꾸지 말고 `contract-guardian`의 판단을 요청한다(보고로).
 - 외부 의존(다른 레포·외부 API) 접근 불가: 우회 구현을 만들지 말고 보고한다.
   일정 리스크이므로 사람이 알아야 한다.
@@ -142,7 +143,7 @@ skills:
 - 의존성 추가 필요 → `severity: demo_blocker`, 담당 `human`으로 보고하고 **멈춘다**
 - push·PR 명령 → 보고에 적는다 (실행하지 않는다)
 
-**계약 테스트를 고치지 않는다.** `contract_tests_dir`가 실패하면 구현을 고친다. 통과시킬 수
+**계약 테스트를 고치지 않는다.** `contract_tests_dir`가 실패하면 구현을 고친다 — 뒤 묶음 계약 테스트의 구현 없음 실패는 예외(`issue-harness:tdd-cycle` 「묶음 끝 — `check_cmd` 한 번」). 통과시킬 수
 없고 계약 자체가 틀렸다고 판단되면 `contract-guardian`의 판단을 요청한다. 테스트를 고쳐서
 통과시키는 것은 판정 기준을 구현에 맞추는 것이라 검증이 무의미해진다.
 
@@ -153,7 +154,7 @@ skills:
 ```
 item: M1 (T1,T2,T3)              묶음 ID와 통과한 항목 ID
 result: pass | fail | blocked
-evidence: 실행한 명령과 결과 요약, 커밋 해시, 워크트리 브랜치
+evidence: 실행한 명령과 결과 요약, 커밋 해시, 워크트리 브랜치, 뒤 묶음 실패 목록(있을 때만)
 rationale: (설계 판단이 있었을 때)
 questions: (있을 때만)
 next: (fail일 때)

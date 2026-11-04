@@ -151,7 +151,7 @@ Claude Code 워크트리는 gitignore된 의존성 설치 디렉터리(가상환
   옮기거나 클래스로 감싸기, 파일 이름을 pytest 수집 규칙(`test_*.py`) 밖으로 바꾸기도 변경이다. 테스트 추가, `assert` 추가, assert 메시지 변경, parametrize 케이스 추가,
   같은 함수를 다른 파일로 옮기는 것은 선언하지 않는다. `--no-verify`는 쓰지 않는다.
 - **항목 커밋은 관련 테스트(`test_file_cmd`) 통과 후, 묶음 보고는 `check_cmd` 통과 후.** 린터가 작업 트리를
-  고치면 이후 `git diff`로 무엇이 바뀌었는지 본다 (`issue-harness:tdd-cycle`).
+  고치면 이후 `git diff`로 무엇이 바뀌었는지 본다. 통과 기준은 `issue-harness:tdd-cycle` 「묶음 끝 — `check_cmd` 한 번」.
 - **이슈 브랜치에 커밋하지 않는다.** 구현자는 자신의 워크트리 브랜치에만 커밋한다.
   **오케스트레이터도 대칭으로 지킨다** — 워크트리가 도는 동안 이슈 브랜치에 커밋하지 않는다(8절 — 승인된 계약·spec 예외 포함).
 
@@ -181,7 +181,7 @@ origin에는 이슈 브랜치만 올라간다. PR은 `이슈 브랜치 → 기�
 (`.harness/`는 gitignore라 커밋 대상이 아니다 — primary에서 언제든 갱신한다.)
 
 **예외 — 사람이 승인한 계약·spec 커밋.** 구현 중 계약이나 spec이 바뀌어 사람이 승인했으면 이슈 브랜치에 커밋하고
-(바뀐 계약에 따른 계약 테스트 커밋 포함 — 기존 계약 테스트도 `issue-harness:verification-protocol` 「기존 계약 테스트 갱신」대로 찾아 고친다),
+(바뀐 계약에 따른 계약 테스트 커밋 포함 — 제목·본문 짝은 `issue-harness:issue-harness` 「full — `3a-contract` → `3a-test`」의 커밋 형식대로, 기존 계약 테스트도 `issue-harness:verification-protocol` 「기존 계약 테스트 갱신」대로 찾아 고친다),
 다음 go 직전에 오케스트레이터가 워크트리 브랜치로 머지한다(`issue-harness:issue-harness` 「go 직전 반영」).
 이슈 브랜치 → 워크트리 한 방향이라 분기가 나지 않는다. 예외는 이것뿐이다 — 기록·문서는 여전히 머지 후에 커밋한다.
 

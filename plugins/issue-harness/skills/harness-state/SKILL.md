@@ -126,7 +126,7 @@ python3 "${CLAUDE_PLUGIN_ROOT}/scripts/check-state.py"
 새 세션에서 이전 구현자에게 `SendMessage`가 닿는다고 가정하지 않는다. 새 `Agent(isolation: worktree)`는
 HEAD에서 새로 갈라지므로 이전 워크트리 커밋이 없다:
 
-1. 이전 워크트리에 끝난 묶음 커밋이 있으면 이슈 브랜치로 로컬 머지하고 `check_cmd`.
+1. 이전 워크트리에 끝난 묶음 커밋이 있으면 이슈 브랜치로 로컬 머지하고 `check_cmd` — 통과 기준은 `issue-harness:tdd-cycle` 「묶음 끝 — `check_cmd` 한 번」(M<k>를 이번 묶음으로).
    메시지는 **`chore : 끝난 묶음을 이슈 브랜치에 반영한다 (#<N>, M1~M<k>)`** — 최종 머지 메시지(`4e`)를 쓰면
    복원 표가 `4e`가 끝난 것으로 읽는다.
 2. 남은 묶음부터 새 구현자를 부른다.
