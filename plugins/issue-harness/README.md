@@ -14,6 +14,7 @@
 
 설계와 결정 근거: [`docs/design.md`](docs/design.md)
 단계별 흐름도와 절차가 생긴 이유(사용자 안내): [`docs/guide.html`](docs/guide.html) — 정본은 스킬이다
+하네스 문서를 고칠 때·리뷰할 때의 작성 규약: [`CODING_STANDARDS.md`](CODING_STANDARDS.md)
 
 ## 구성
 
