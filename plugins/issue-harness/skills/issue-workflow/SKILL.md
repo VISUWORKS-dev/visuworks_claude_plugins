@@ -30,8 +30,8 @@ description: "작업 단위 규약 — GitHub 이슈 = 워크트리 = PR. 이슈
 ### 범위 산정 — 하네스 밖 작업
 
 하네스 없이 이슈를 직접 고칠 때도 브랜치·수정 전에 범위와 PR 줄을 사람에게 확인받는다.
-바꿀 파일·단계와 `경로:`·`PR:` 두 줄(형식은 `issue-harness:issue-harness` 「PR 줄」)을 한 번에 보이고
-`AskUserQuestion`으로 묻는다. 확인 전 PR 줄은 미확정이다 — push하지 않는다.
+바꿀 파일·단계를 먼저 보이고, 경로·PR 모드·push는 `issue-harness:issue-harness` 「시작 설정 질문」대로
+`AskUserQuestion` 질문 3개로 따로 묻는다(형식은 같은 스킬 「PR 줄」). 확인 전 PR 줄은 미확정이다 — push하지 않는다.
 확정 뒤 그 작업을 하는 에이전트가 오케스트레이터다 — 커밋·검증 뒤 이 줄대로 `pr-writing`을 끝까지 따른다.
 
 ## 2. 계획 — spec 문서
@@ -198,7 +198,7 @@ primary를 찾아 거기에만 쓴다(`issue-harness:harness-state`). 정본은 
 **이 실패를 결함으로 읽지 마라.** 구조상 정상이고, 머지가 그것을 닫는다.
 
 머지 조건 — **완료 알림·종료 기록만으로 머지하지 않는다.** "끝났다"만 뜻하고
-"성공했다"가 아니다(`issue-harness:harness-state`). 셋을 확인한다:
+"성공했다"가 아니다(`issue-harness:harness-state`). 넷을 확인한다(`<spec 커밋>`은 첫 spec 커밋 — `issue-harness:harness-state` 「진행 지점 복원」):
 
 1. 워크트리에 기능 커밋이 있는가 (`git -C <워크트리> log <spec 커밋>..HEAD --grep "^Tests: T"` — 범위 없이 세면 다른 이슈 커밋이 섞인다)
 2. `blockers`에 `resolved: false`가 없는가
