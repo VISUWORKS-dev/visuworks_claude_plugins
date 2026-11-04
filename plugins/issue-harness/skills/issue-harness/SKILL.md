@@ -17,7 +17,7 @@ cat .claude/harness.config.json
 
 | 키 | 쓰는 곳 |
 |---|---|
-| `models.<역할>` · `model` | `Agent` 호출의 `model` — 아래 「모델」. 둘 다 없으면 넣지 않는다 |
+| `models.<역할>` · `model` | `Agent` 호출의 `model` — 아래 「모델명」. 둘 다 없으면 넣지 않는다 |
 | `check_cmd` | 구현자의 묶음 끝, `4c`, `4e`(조건부) |
 | `test_file_cmd` | 구현자의 항목별 부분 테스트(`{files}` 치환). 없으면 `check_cmd` |
 | `contract_test_cmd` | `3a-test`의 실패 확인 |
