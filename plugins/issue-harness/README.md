@@ -13,6 +13,7 @@
 - 커밋 규약(팀 전역 템플릿 `<타입> : <제목>` + 기능 커밋의 `Tests: T<n>` 꼬릿말)과 선언 없는 테스트 삭제·변경 차단은 git hook이 강제
 
 설계와 결정 근거: [`docs/design.md`](docs/design.md)
+단계별 흐름도와 절차가 생긴 이유(사용자 안내): [`docs/guide.html`](docs/guide.html) — 정본은 스킬이다
 
 ## 구성
 

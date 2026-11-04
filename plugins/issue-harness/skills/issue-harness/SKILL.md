@@ -215,12 +215,20 @@ git commit -m "docs : 이슈 #<N> 계약 — <계약명>[, <계약명>] confirme
 바뀐 파일이 없으면 `--allow-empty`로 남긴다 — 진행 지점 복원이 이 커밋을 본다.
 
 **`3a-test`** — 계약이 `confirmed`가 되면 `qa`가 `contract_tests_dir`에 실패 테스트를 쓰고
-`contract_test_cmd`로 실패를 확인한다. 형태만 건다 — `issue-harness:verification-protocol` 「계약 TDD」.
+`contract_test_cmd`로 실패와 그 원인을 확인한다. 형태만 건다 — `issue-harness:verification-protocol` 「계약 TDD」.
+`qa` 프롬프트의 계약 항목은 go 템플릿 `[계약]`과 같은 형식(절 위치 + 원문 인용)이다.
+
+**계약을 바꿨으면** `qa` 프롬프트에 `3a` 계약 커밋 해시를 넣는다 — `qa`가 기존 계약 테스트를 찾아 고친다
+(`issue-harness:verification-protocol` 「기존 계약 테스트 갱신」).
+
 실패를 확인하면 **오케스트레이터가 커밋한다** — 워크트리는 HEAD에서 갈라지므로 커밋해야 구현자에게 간다.
 
 ```bash
 git add <contract_tests_dir>
 git commit -m "test : 이슈 #<N> 계약 테스트 — <n>건 (실패 확인)"
+# 기존 테스트를 고쳤으면 qa 보고의 이름마다 -m 한 줄 (대상 형식: issue-harness:issue-workflow 6절)
+git commit -m "test : 이슈 #<N> 계약 테스트 — <n>건 (실패 확인)" \
+           -m "Test-Change: <대상> — 계약 <계약 커밋>"
 ```
 
 #### `3b-implement` ↔ `3c-incremental-qa`
@@ -236,7 +244,8 @@ Agent(subagent_type: "issue-harness:implementer", isolation: "worktree", name: "
 
 ② 판정
    - git -C <워크트리> log --oneline <이전>..HEAD 로 커밋 확인
-   - full: 3c — integration-qa(model: <models.qa>)에 <워크트리 경로>와 이 묶음의 경계면을 준다
+   - full: 3c — integration-qa(model: <models.qa>)에 <워크트리 경로>, 이 묶음의 경계면, 계약 항목(템플릿 [계약] 형식)을 준다.
+     테스트만 바뀐 묶음도 부른다 — 새 단정의 기대값이 구현과 무관한지 보는 곳이 3c다
    - 전이 규칙 1번부터
 
 ③ 다음 go — 같은 워크트리·같은 맥락. 직전에 이슈 브랜치 반영(아래)
@@ -267,7 +276,8 @@ git -C <워크트리> merge --no-ff <이슈브랜치> -m "chore : 이슈 브랜�
 
 [spec] <spec_dir>/issue-<N>.md 의 <M1> — 워크트리에 커밋돼 있다
 [프로젝트 값] check_cmd=<…>, test_file_cmd=<…>, src_dirs=<…>, tests_dir=<…>, contract_tests_dir=<…>
-[계약] 이 묶음이 소비·생산하는 스키마만 발췌 (<contract_skill>)
+[계약] 이 묶음이 소비·생산하는 계약만 — 항목마다 절 위치(<contract_skill>의 파일·절)와 원문 인용.
+       한 줄 요약을 붙여도 색인일 뿐 기대값 근거가 아니다 — 요약대로 구현하면 계약과 갈린다
 [답변된 전제] answer가 있는 open_questions만
 [이전 실패 원인] 재호출·3c 지적이 있을 때만 — 빼먹으면 같은 실패를 반복한다
 [반영] go 직전 반영한 커밋이 있을 때만 — 바뀐 spec·계약 절을 다시 읽으라고 적는다
@@ -362,7 +372,7 @@ git merge-base --is-ancestor origin/<기본 브랜치> HEAD || git merge --no-ff
 | 의존성 추가 필요 | 사람의 결정. 멈추고 보고 |
 | 외부 의존 접근 불가 | 우회 구현을 만들지 말고 보고 |
 | 선행 이슈 미완 | 진행 여부를 사용자에게 확인 |
-| 계약 테스트가 작성 시점에 통과 | 빈 테스트다. 다시 쓰게 하고 `3b`로 보내지 않는다 |
+| 계약 테스트가 작성 시점에 통과하거나 테스트 자체 오류로 실패 | 테스트 결함. 다시 쓰게 하고 `3b`로 보내지 않는다 (`issue-harness:harness-state` 전이 규칙 5) |
 | `4a`가 명세를 요청 | 주지 않는다 |
 | `4a`·`4b` 불일치 | 임의 판정 금지. 근거와 함께 사람에게 보고 |
 | 구현자가 계약 테스트를 고치려 함 | 막는다. 구현을 고치거나 `contract-guardian`에게 판단 요청 |
