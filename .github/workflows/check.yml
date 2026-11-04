@@ -1,0 +1,14 @@
+name: check
+on: pull_request
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # init_scenarios.sh가 옛 커밋에서 템플릿을 꺼낸다
+      - run: git config --global user.email ci@ci && git config --global user.name ci
+      - run: python3 .github/scripts/check_plugins.py
+      - run: |
+          for t in plugins/issue-harness/tests/*_scenarios.sh; do echo "== $t"; bash "$t" || fail=1; done
+          exit ${fail:-0}
