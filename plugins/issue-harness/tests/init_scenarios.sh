@@ -27,7 +27,7 @@ ok "옛 pre-commit 삭제, commit-msg 달라 rc 1" "rc 1 && [ ! -e $R/.githooks/
 ok "추적 파일 삭제 커밋 안내" "grep -q '삭제한 .githooks/pre-commit을 커밋한다' $R/out"
 ok "commit-msg 교체 안내" "grep -q 'cp .*/.githooks/commit-msg$' $R/out"
 ok "config 그대로" "cmp -s $R/cfg $R/.claude/harness.config.json"
-ok "models·test_file_cmd 생략 가능 안내" "grep -q \"'models'가 없다\" $R/out && grep -q \"'test_file_cmd'가 없다\" $R/out"
+ok "models·test_file_cmd·test_policy 생략 가능 안내" "grep -q \"'models'가 없다\" $R/out && grep -q \"'test_file_cmd'가 없다\" $R/out && grep -q \"'test_policy'가 없다\" $R/out"
 ok "옛 state 경고" "grep -q '경고: .harness/issue-3/state.json가 옛 형식' $R/out"
 git -C $R worktree add -q $R/wt -b 3-wt 2>/dev/null; W=$R/wt run; W=
 ok "워크트리에서도 primary의 옛 state 경고" "grep -q '경고: .harness/issue-3/state.json' $R/out"

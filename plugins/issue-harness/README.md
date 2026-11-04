@@ -118,6 +118,7 @@ tracked 파일이다. 오케스트레이터·에이전트(모델)와 git hook(�
   "tests_dir": "tests/",                   // 테스트 변경 선언 검사·refact/style 커밋의 변경 금지 대상
   "contract_tests_dir": "tests/contract/", // integration-qa 소유
   "spec_dir": "docs/specs",                // spec = <spec_dir>/issue-<N>.md
+  "test_policy": null,                     // 테스트 정책 문서 경로(예: "docs/testing.md"). 2a는 정책대로 쓰고 2b·4b가 대조한다
   "branch_pattern": "<N>-<slug>",          // 이슈 브랜치 이름 규칙 — <N>-로 시작해야 활성 이슈를 찾는다
   "contract_skill": null,                  // 계약 정본 스킬 이름. null이면 spec의 계약 절이 정본
   "domain_agents": [                       // 팀에 넣을 프로젝트 에이전트
