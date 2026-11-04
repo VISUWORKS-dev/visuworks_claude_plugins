@@ -47,6 +47,7 @@ C1~Cn으로 읽고 보고에 그렇게 적는다.
   `gh issue view <번호> --json parent`에 부모 이슈(스펙 이슈)가 있으면 `gh issue view <parent.number> --json body`로
   본문도 읽는다 — 티켓 이슈는 부모 스펙의 일부만 담는다. 루트에 `GLOSSARY.md`·`docs/adr/`가 있으면 읽고 spec에 그 용어를 쓴다.
   ADR에 정해진 결정은 다시 열지 않는다. 없으면 무시한다.
+  프롬프트에 테스트 정책 문서가 있으면 읽고, 테스트 목록 항목의 단정 대상이 그 정책을 어기지 않게 쓴다.
 - 출력: **`<spec_dir>/issue-<번호>.md`를 Write 툴로 직접 쓴다.** 그 파일 하나만 쓴다.
   보고에는 본문을 붙이지 않는다 — 메시지 전달이 수백 행 본문을 잘라 테스트 목록이 승인 게이트에
   도달하지 못한다.
@@ -191,6 +192,8 @@ spec이 이미 있으면 읽고 **덮어쓰지 않고 개선한다.**
 담당 단계: `2-plan` / `2a-plan-draft`
 
 ## 최종 보고 형식
+
+보고는 한 번 보낸다 — 서브에이전트면 마지막 텍스트, 팀원이면 `SendMessage` 한 통(마지막 텍스트는 한 줄) (`issue-harness:harness-state` 「경과 — `events.jsonl`」).
 
 훅이 보고 원문을 primary의 `events.jsonl`에 저장하고, 오케스트레이터가 읽어
 `state.json`에 반영한다. 아래 항목을 빠뜨리면 반영되지 않는다.

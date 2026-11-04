@@ -23,6 +23,7 @@ cat .claude/harness.config.json
 | `contract_test_cmd` | `3a-test`의 실패 확인 |
 | `src_dirs`·`tests_dir`·`contract_tests_dir` | 권한, 프롬프트 |
 | `spec_dir` | spec 경로 `<spec_dir>/issue-<N>.md` |
+| `test_policy` | 테스트 정책 문서 경로. `2a` 프롬프트, `2b` 대조, `4b` 프롬프트. `null`이면 셋 다 생략 |
 | `contract_skill` | 계약 정본 스킬. `null`이면 spec의 「이 이슈가 확정하는 계약」 절이 정본 |
 | `domain_agents` | 팀에 넣을 수 있는 프로젝트 에이전트와 결정 범위 |
 | `domain_skills.scope`·`.workflow` | 범위 판정 사례, 이슈 의존 순서 |
@@ -165,6 +166,7 @@ Agent(
            경로: <full|light>, PR: <모드> · push <자동|사람> — spec 머리에 적는다.
            계약 정본: <contract_skill 또는 '없음 — spec에 계약 절을 쓴다'>.
            범위 판정: issue-harness:scope-guard (+ 프로젝트 사례: <domain_skills.scope>).
+           테스트 정책: <test_policy — null이면 이 줄을 뺀다>. 테스트 목록 항목이 어기지 않게 쓴다.
            마감: <있으면 날짜>.
            <spec_dir>/issue-<N>.md 에 직접 써라(Write). 그 파일 하나만 쓴다.
            보고는 짧게: 파일 경로, 항목 수, open_questions, 계약 공백, scope_out. 본문을 붙이지 마라."
@@ -177,7 +179,9 @@ Agent(
 **`2b-human-questions`** — 한 게이트에서 셋을 받는다. `AskUserQuestion`, 항목별 선택지 2~4개.
 
 - `TODO(확인필요)`·`open_questions`의 답 → `open_questions[].answer`
-- `## 테스트 목록` 승인 — 구현자는 기대값을 바꿀 수 없으므로 승인 없이 들어가면 사람이 확정하지 않은 기대값이 정본이 된다
+- `## 테스트 목록` 승인 — 구현자는 기대값을 바꿀 수 없으므로 승인 없이 들어가면 사람이 확정하지 않은 기대값이 정본이 된다.
+  `test_policy`가 있으면 오케스트레이터가 그 문서를 읽고 항목마다 대조한 결과(`T<n> — 어긋나는 조항`, 없으면 "위반 없음")를
+  함께 제시한다 — planner가 정책을 읽어도 단정 대상(화면 class 이름·문구 등)이 어긋난 채 들어오고, 대조가 없으면 push 직전 리뷰에서야 드러난다
 - `scope_out:`이 있으면 이슈 범위 밖 줄 갱신 승인 — 승인되면 `gh issue edit`으로 반영한다. 이슈가 범위의 정본이다
 
 지적을 받으면 spec을 고친다(`issue-planner` 재호출 또는 직접). `answer: null`이 남으면 `3b`로 가지 않는다.
@@ -203,9 +207,10 @@ Agent(subagent_type: "issue-harness:integration-qa",    name: "qa",       model:
 ```
 
 팀원 프롬프트에 넣는 규칙:
-- 계약이 바뀌면 `contract`가 **팀 전원과 오케스트레이터에게 통보한다.** 구현자에게는 오케스트레이터가 다음 "go"에 담는다.
-- `qa`가 `demo_blocker`를 찾으면 오케스트레이터에게 즉시 알린다.
-- 팀원 보고는 `SendMessage`로 온다 — 훅이 `source: "message"` 줄로 남긴다.
+- 보고 밖의 `SendMessage` 통보는 계약 변경 하나다 — 계약이 바뀌면 `contract`가 **팀 전원과 오케스트레이터에게 통보한다.**
+  구현자에게는 오케스트레이터가 다음 "go"에 담는다. `demo_blocker`는 따로 알리지 않고 보고 맨 앞에 둔다.
+- 보고는 `SendMessage` 한 통이다 — 마지막 텍스트에 같은 본문을 다시 쓰지 않는다. 훅이 `source: "message"` 줄로 남긴다
+  (`issue-harness:harness-state` 「경과 — `events.jsonl`」).
 
 agent teams가 꺼졌거나 `-p` 세션이면 같은 호출이 서브에이전트로 돈다 — 통보는 오케스트레이터가 잇는다.
 
@@ -318,7 +323,7 @@ full은 팀원을 종료하고 서브에이전트로 검증한다 — 팀 안에
 `model: <models.verify_blind>` → `_workspace/verify_<N>_blind.md`
 
 **`4b-verify-spec`** — **`4a`와 다른 인스턴스**, `model: <models.verify_spec>`. 프롬프트:
-`issue-harness:verification-protocol` 2단계(full은 1단계 보고서 대조, light는 코드 직접 대조).
+`issue-harness:verification-protocol` 2단계(full은 1단계 보고서 대조, light는 코드 직접 대조). `test_policy`가 있으면 그 경로를 넣는다.
 → `_workspace/verify_<N>_spec.md`. 불일치 수와 지점은 이 파일과 보고에 남는다.
 
 `4a` → `4b` 순서를 뒤집지 않는다 — 명세를 먼저 읽으면 코드를 명세대로 본다.

@@ -16,6 +16,7 @@
   "tests_dir": "tests/",
   "contract_tests_dir": "tests/contract/",
   "spec_dir": "docs/specs",
+  "test_policy": null,
   "branch_pattern": "<N>-<slug>",
   "contract_skill": null,
   "domain_agents": [],

@@ -103,7 +103,7 @@ model: inherit
   보낸다(→ 즉시 해당 경계면 검증). `contract-guardian`으로부터 계약 변경 통보 (→ 변경된 계약의
   구현 준수 재검증).
 - 메시지 발신: 계약 자체의 모순은 `contract-guardian`에게 판단 요청으로 보낸다.
-  `demo_blocker` 항목은 오케스트레이터에게 즉시 알린다.
+  `demo_blocker` 항목은 따로 알리지 않고 최종 보고 맨 앞에 둔다.
 - 구현 수정 요청: 구현자에게 직접 보내지 않는다. 불일치를 최종 보고에 적으면
   오케스트레이터가 다음 구현 프롬프트에 담는다.
 
@@ -173,6 +173,8 @@ model: inherit
 2단계 판단에 섞여 두 번 볼 이유가 사라진다. 상세: `issue-harness:verification-protocol`
 
 ## 최종 보고 형식
+
+보고는 한 번 보낸다 — 서브에이전트면 마지막 텍스트, 팀원이면 `SendMessage` 한 통(마지막 텍스트는 한 줄) (`issue-harness:harness-state` 「경과 — `events.jsonl`」).
 
 ```
 item: <검증한 묶음 또는 단계>

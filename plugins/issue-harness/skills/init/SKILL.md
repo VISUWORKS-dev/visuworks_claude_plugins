@@ -25,7 +25,7 @@ python3 "${CLAUDE_PLUGIN_ROOT}/scripts/init.py" $ARGUMENTS
 
 출력 원문을 줄이지 말고 보여준 뒤, 다음 단계를 한 줄로 안내한다:
 `.claude/harness.config.json`의 값(`check_cmd`, `src_dirs`, `tests_dir`, `contract_skill`,
-`domain_agents`)을 이 프로젝트에 맞게 고친다.
+`test_policy`, `domain_agents`)을 이 프로젝트에 맞게 고친다.
 
 ## 깔리는 것
 
