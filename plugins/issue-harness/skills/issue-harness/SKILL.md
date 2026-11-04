@@ -207,9 +207,9 @@ Agent(subagent_type: "issue-harness:integration-qa",    name: "qa",       model:
 ```
 
 팀원 프롬프트에 넣는 규칙:
-- 보고 밖의 `SendMessage` 통보는 계약 변경 하나다 — 계약이 바뀌면 `contract`가 **팀 전원과 오케스트레이터에게 통보한다.**
-  구현자에게는 오케스트레이터가 다음 "go"에 담는다. `demo_blocker`는 따로 알리지 않고 보고 맨 앞에 둔다.
-- 보고는 `SendMessage` 한 통이다 — 마지막 텍스트에 같은 본문을 다시 쓰지 않는다. 훅이 `source: "message"` 줄로 남긴다
+- 계약이 바뀌면 `contract`가 **팀 전원과 오케스트레이터에게 통보한다.** 구현자에게는 오케스트레이터가 다음 "go"에 담는다.
+- 보고는 한 번 — 팀원으로 돌면 `SendMessage` 한 통(마지막 텍스트는 한 줄), 서브에이전트로 돌면 마지막 텍스트.
+  보고 밖에서 오케스트레이터에게 보내는 통보는 계약 변경뿐이고 `demo_blocker`는 보고 맨 앞에 둔다
   (`issue-harness:harness-state` 「경과 — `events.jsonl`」).
 
 agent teams가 꺼졌거나 `-p` 세션이면 같은 호출이 서브에이전트로 돈다 — 통보는 오케스트레이터가 잇는다.

@@ -144,7 +144,8 @@ HEAD에서 새로 갈라지므로 이전 워크트리 커밋이 없다:
 
 ```jsonc
 {"at":"...","source":"subagent","agent":"issue-harness:integration-qa","agent_id":"a-2","cwd":"...","msg":"item: M1\nresult: pass\n..."}
-{"at":"...","source":"message","agent":"qa","agent_id":"aqa-…","cwd":"...","to":"team-lead","msg":"result: pass\n..."}
+{"at":"...","source":"message","agent":"qa","agent_id":"aqa-…","cwd":"...","to":"team-lead","msg":"item: 3a-test\nresult: pass\n..."}
+{"at":"...","source":"subagent","agent":"qa","agent_id":"aqa-…","cwd":"...","msg":"보고를 보냈다."}
 {"at":"...","source":"githook","hook":"commit-msg","event":"commit_blocked","reason":"선언 없이 지우거나 바꾼 테스트 2개"}
 ```
 
@@ -156,7 +157,8 @@ HEAD에서 새로 갈라지므로 이전 워크트리 커밋이 없다:
 **보고는 한 번 보낸다.** 서브에이전트는 마지막 텍스트가 보고다. 팀원은 보고를 `SendMessage` 한 통으로 보내고 마지막 텍스트는
 한 줄 맺음말로 둔다 — 팀원의 마지막 텍스트가 오케스트레이터에 닿는다는 실측은 없다. 같은 본문을 두 번 보내면 수백 행이
 오케스트레이터 맥락에 두 번 쌓인다. 보고 밖에서 오케스트레이터에게 보내는 통보는 계약 변경 하나다
-(팀원끼리의 판단 요청은 통보가 아니다).
+(팀원끼리의 판단 요청은 통보가 아니다). `message` 줄 중 보고는 최종 보고 형식의 첫 줄(`item:`·`spec:`·`result:`)로 시작하고,
+그 밖의 줄은 통보다.
 
 - `msg`는 원문 전체다. 훅은 파싱하지 않는다 — 형식이 어긋나도 기록은 남는다.
 - 오케스트레이터(메인 스레드)의 메시지는 기록하지 않는다(`agent_id` 없음).

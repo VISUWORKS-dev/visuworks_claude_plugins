@@ -151,7 +151,7 @@ skills:
 
 ## 최종 보고 형식
 
-보고는 한 번 보낸다 — 서브에이전트면 마지막 텍스트, 팀원이면 `SendMessage` 한 통(마지막 텍스트는 한 줄) (`issue-harness:harness-state` 「경과 — `events.jsonl`」).
+보고는 마지막 텍스트 한 번이다 — 같은 본문을 `SendMessage`로 다시 보내지 않는다 (`issue-harness:harness-state` 「경과 — `events.jsonl`」).
 
 ```
 item: M1 (T1,T2,T3)              묶음 ID와 통과한 항목 ID

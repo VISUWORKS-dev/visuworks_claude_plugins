@@ -193,7 +193,7 @@ spec이 이미 있으면 읽고 **덮어쓰지 않고 개선한다.**
 
 ## 최종 보고 형식
 
-보고는 한 번 보낸다 — 서브에이전트면 마지막 텍스트, 팀원이면 `SendMessage` 한 통(마지막 텍스트는 한 줄) (`issue-harness:harness-state` 「경과 — `events.jsonl`」).
+보고는 마지막 텍스트 한 번이다 — 같은 본문을 `SendMessage`로 다시 보내지 않는다 (`issue-harness:harness-state` 「경과 — `events.jsonl`」).
 
 훅이 보고 원문을 primary의 `events.jsonl`에 저장하고, 오케스트레이터가 읽어
 `state.json`에 반영한다. 아래 항목을 빠뜨리면 반영되지 않는다.
