@@ -233,7 +233,7 @@ spec 문서(<spec_dir>/issue-<N>.md), 이슈 #<N>, 이 이슈가 소비하는 �
 
 검증 결과는 `_workspace/verify_<N>_{blind,spec}.md`와 보고에 남는다. `state.json`에는 적지 않는다 —
 불일치 중 진행을 막는 것만 `blockers`로 오케스트레이터가 옮긴다. 계약 테스트 보고에는
-`agents/integration-qa.md` 「최종 보고 형식」의 `3a-test` 칸(실패 원인·고친 테스트·옛 계약 단위 테스트·구현 전제)을 `contract_test_cmd` 출력과 함께 적는다.
+`agents/integration-qa.md` 「최종 보고 형식」의 `3a-test` 칸(테스트마다 짝 항목·실패 원인·고친 테스트·옛 계약 단위 테스트·구현 전제)을 `contract_test_cmd` 출력과 함께 적는다.
 그중 통과했거나 구현 없음이 아닌 원인으로 실패한 것이 있으면 오케스트레이터는 다음 단계로 보내지 않는다
 (`issue-harness:harness-state` 전이 규칙 5).
 

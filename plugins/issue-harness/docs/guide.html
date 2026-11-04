@@ -325,6 +325,7 @@ flowchart TD
   <li><span class="when">2026-11-04 · #32·#44</span><span class="what">구현 중 승인된 계약·spec을 다음 go 직전 워크트리에 반영</span><span class="because">워크트리는 HEAD에서 갈라진 뒤 이슈 브랜치의 새 커밋을 모릅니다.</span></li>
   <li><span class="when">2026-11-04 · #49</span><span class="what">가짜는 계약 시그니처대로, 구현 전제·옛 계약 단위 테스트를 go의 [주의]로</span><span class="because">평가 2회차에서 <code>lambda *args</code> 가짜가 키워드로 부르는 구현을 거부했고, 가짜를 끼우는 지점이 가져오기 방식을 묶는데 구현자가 몰랐고, 옛 계약을 단정하는 단위 테스트를 고칠 길이 없었습니다.</span></li>
   <li><span class="when">2026-11-04 · #30</span><span class="what">실패 원인 판정, 계약 원문 인용, 기대값 출처 점검, 기존 계약 테스트 갱신</span><span class="because">늘 통과하는 테스트가 최종 검증까지 갔고, 테스트 자체 오류가 「구현 없음」으로 커밋됐고, 한 줄 요약을 받은 구현자가 계약대로 만들고도 충돌로 보고했고, 바뀐 계약을 단정하는 옛 테스트를 놓쳤습니다.</span></li>
+  <li><span class="when">2026-11-04 · #55</span><span class="what">앞 묶음 <code>check_cmd</code>에서 뒤 묶음 계약 테스트의 구현 없음 실패는 남기고, 3c가 계약 테스트 커밋 본문의 테스트–항목 짝으로 직접 판정</span><span class="because">계약 테스트를 모든 묶음보다 먼저 커밋해 첫 묶음 구현자가 <code>check_cmd</code>를 통과시킬 수 없었습니다(평가 4회차).</span></li>
 </ol>
 </section>
 

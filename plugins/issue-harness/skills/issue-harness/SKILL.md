@@ -231,11 +231,17 @@ git commit -m "docs : 이슈 #<N> 계약 — <계약명>[, <계약명>] confirme
 
 실패를 확인하면 **오케스트레이터가 커밋한다** — 워크트리는 HEAD에서 갈라지므로 커밋해야 구현자에게 간다.
 
+본문에는 `qa` 보고 `failures:`의 테스트–항목 짝을 줄마다 옮긴다 — 앞 묶음 `check_cmd`에서 남겨도 되는 실패를
+구현자와 `3c`가 이 본문으로 가른다(`issue-harness:tdd-cycle` 「묶음 끝 — `check_cmd` 한 번」). git에 남아 재개해도 읽힌다.
+
 ```bash
 git add <contract_tests_dir>
-git commit -m "test : 이슈 #<N> 계약 테스트 — <n>건 (실패 확인)"
-# 기존 테스트를 고쳤으면 qa 보고의 이름마다 -m 한 줄 (대상 형식: issue-harness:issue-workflow 6절)
 git commit -m "test : 이슈 #<N> 계약 테스트 — <n>건 (실패 확인)" \
+           -m "<테스트 이름> — T<n>
+<테스트 이름> — T<m>"
+# 기존 테스트를 고쳤으면 qa 보고의 이름마다 -m 한 줄 더 (대상 형식: issue-harness:issue-workflow 6절)
+git commit -m "test : 이슈 #<N> 계약 테스트 — <n>건 (실패 확인)" \
+           -m "<테스트 이름> — T<n>" \
            -m "Test-Change: <대상> — 계약 <계약 커밋>"
 ```
 
@@ -252,7 +258,8 @@ Agent(subagent_type: "issue-harness:implementer", isolation: "worktree", name: "
 
 ② 판정
    - git -C <워크트리> log --oneline <이전>..HEAD 로 커밋 확인
-   - full: 3c — integration-qa(model: <models.qa>)에 <워크트리 경로>, 이 묶음의 경계면, 계약 항목(템플릿 [계약] 형식)을 준다.
+   - full: 3c — integration-qa(model: <models.qa>)에 <워크트리 경로>, 이 묶음의 경계면, 계약 항목(템플릿 [계약] 형식),
+     구현자 보고 원문을 준다.
      테스트만 바뀐 묶음도 부른다 — 새 단정의 기대값이 구현과 무관한지 보는 곳이 3c다
    - 전이 규칙 1번부터
 
@@ -296,7 +303,8 @@ git -C <워크트리> merge --no-ff <이슈브랜치> -m "chore : 이슈 브랜�
 spec을 발췌하지 않는다(워크트리에 있다). 완료 알림은 "끝났다"만 뜻한다 — 성공 여부는 보고의 `result:`·커밋·`3c`로 판정한다.
 
 **`3c`는 `check_cmd`를 다시 돌리지 않는다.** 구현자 보고의 `check_cmd` 출력이 근거이고, `3c`는 경계면 교차 비교와
-계약 테스트(`contract_test_cmd`)만 돌린다.
+계약 테스트(`contract_test_cmd`)만 돌린다. 앞 묶음 시점의 뒤 묶음 계약 테스트 실패는 `3c`가 계약 테스트 커밋 본문의 짝으로
+직접 가른다 — `agents/integration-qa.md` 「상태 기록 — 파일이 아니라 보고로 한다」(담당 단계 `3c-incremental-qa`).
 
 구현자가 도메인 판단·계약 변경·의존성 추가를 요청하면 도메인 에이전트·`contract-guardian`·사람에게 넘기고
 답을 다음 go에 담는다.
@@ -374,7 +382,7 @@ git merge-base --is-ancestor origin/<기본 브랜치> HEAD || git merge --no-ff
 | `.claude/harness.config.json` 없음 | 멈추고 `/issue-harness:init` 안내 |
 | 팀원 1명 실패 | 1회 재시작. 재실패 시 사용자에게 확인 — 남은 팀원은 권한이 달라 그 일을 대신할 수 없다 |
 | 팀원 과반 실패 | 중단하고 사용자에게 확인 |
-| `check_cmd` 실패 | 고친다. 테스트를 지우거나 skip하지 않는다 |
+| `check_cmd` 실패 | 고친다. 테스트를 지우거나 skip하지 않는다. 앞 묶음 시점의 통과 기준은 `issue-harness:tdd-cycle` 「묶음 끝 — `check_cmd` 한 번」 |
 | 계약과 구현 충돌 | 임의 판정 금지. 더 많은 소비자가 따르는 쪽을 제안하고 사용자에게 보고 |
 | 도메인 정보 부재 | `TODO(확인필요)` + `AskUserQuestion`. 추측으로 채우지 않는다 |
 | 의존성 추가 필요 | 사람의 결정. 멈추고 보고 |
