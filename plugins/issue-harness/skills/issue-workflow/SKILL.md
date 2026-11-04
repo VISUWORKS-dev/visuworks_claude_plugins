@@ -68,8 +68,10 @@ git commit -m "docs : 이슈 #<N> spec — 테스트 목록 <n>항목"
 
 ```bash
 git add <전달할 파일>
-git commit -m "docs : 이슈 #<번호> <전달 내용>"   # 계약은 "docs : 이슈 #<번호> 계약 — …", 계약 테스트는 test :
+git commit -m "docs : 이슈 #<번호> <전달 내용>"
 ```
+
+계약·계약 테스트의 커밋 메시지는 `issue-harness:issue-harness` 「full — `3a-contract` → `3a-test`」.
 
 ## 4. 워크트리 생성 · 구현자 실행
 

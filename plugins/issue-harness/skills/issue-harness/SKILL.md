@@ -212,7 +212,8 @@ agent teams가 꺼졌거나 `-p` 세션이면 같은 호출이 서브에이전�
 계약 테스트만 커밋하면 워크트리는 옛 계약과 새 계약 테스트를 함께 받는다.
 
 ```bash
-git add .claude/skills/<contract_skill>/   # contract_skill이 null이면 <spec_dir>/issue-<N>.md (계약 절)
+git add .claude/skills/<contract_skill>/   # contract_skill이 있을 때
+git add <spec_dir>/issue-<N>.md            # contract_skill이 null일 때 (계약 절)
 git commit -m "docs : 이슈 #<N> 계약 — <계약명>[, <계약명>] confirmed"
 ```
 
