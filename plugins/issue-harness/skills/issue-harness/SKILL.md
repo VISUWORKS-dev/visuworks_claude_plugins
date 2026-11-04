@@ -23,7 +23,7 @@ cat .claude/harness.config.json
 | `contract_test_cmd` | `3a-test`의 실패 확인 |
 | `src_dirs`·`tests_dir`·`contract_tests_dir` | 권한, 프롬프트 |
 | `spec_dir` | spec 경로 `<spec_dir>/issue-<N>.md` |
-| `test_policy` | 테스트 정책 문서 경로. `2a` 프롬프트, `2b` 대조, `4b` 프롬프트. `null`이면 셋 다 생략 |
+| `test_policy` | 테스트 정책 문서 경로. `2a`·`3a-test`·`4b` 프롬프트, `2b` 대조, go 템플릿 `[프로젝트 값]`. `null`이면 전부 생략 |
 | `contract_skill` | 계약 정본 스킬. `null`이면 spec의 「이 이슈가 확정하는 계약」 절이 정본 |
 | `domain_agents` | 팀에 넣을 수 있는 프로젝트 에이전트와 결정 범위 |
 | `domain_skills.scope`·`.workflow` | 범위 판정 사례, 이슈 의존 순서 |
@@ -181,7 +181,8 @@ Agent(
 - `TODO(확인필요)`·`open_questions`의 답 → `open_questions[].answer`
 - `## 테스트 목록` 승인 — 구현자는 기대값을 바꿀 수 없으므로 승인 없이 들어가면 사람이 확정하지 않은 기대값이 정본이 된다.
   `test_policy`가 있으면 오케스트레이터가 그 문서를 읽고 항목마다 대조한 결과(`T<n> — 어긋나는 조항`, 없으면 "위반 없음")를
-  함께 제시한다 — planner가 정책을 읽어도 단정 대상(화면 class 이름·문구 등)이 어긋난 채 들어오고, 대조가 없으면 push 직전 리뷰에서야 드러난다
+  함께 제시한다 — planner가 정책을 읽어도 단정 대상(화면 class 이름·문구 등)이 어긋난 채 들어오고, 대조가 없으면 push 직전 리뷰에서야 드러난다.
+  위반이 있으면 승인 전에 spec을 고친다. 사람이 예외로 남기면 `## 테스트 목록` 끝에 `정책 예외: T<n> — <조항> (사람 승인)` 줄을 적는다 — `4b`는 그 항목을 위반으로 세지 않는다
 - `scope_out:`이 있으면 이슈 범위 밖 줄 갱신 승인 — 승인되면 `gh issue edit`으로 반영한다. 이슈가 범위의 정본이다
 
 지적을 받으면 spec을 고친다(`issue-planner` 재호출 또는 직접). `answer: null`이 남으면 `3b`로 가지 않는다.
@@ -225,7 +226,8 @@ git commit -m "docs : 이슈 #<N> 계약 — <계약명>[, <계약명>] confirme
 
 **`3a-test`** — 계약이 `confirmed`가 되면 `qa`가 `contract_tests_dir`에 실패 테스트를 쓰고
 `contract_test_cmd`로 실패와 그 원인을 확인한다. 형태만 건다 — `issue-harness:verification-protocol` 「계약 TDD」.
-`qa` 프롬프트의 계약 항목은 go 템플릿 `[계약]`과 같은 형식(절 위치 + 원문 인용)이다.
+`qa` 프롬프트의 계약 항목은 go 템플릿 `[계약]`과 같은 형식(절 위치 + 원문 인용)이다. `test_policy`가 있으면 그 경로도 넣는다 —
+계약 테스트도 정책을 지켜 쓴다.
 
 **계약을 바꿨으면** `qa` 프롬프트에 `3a` 계약 커밋 해시를 넣는다 — `qa`가 기존 계약 테스트를 찾아 고친다
 (`issue-harness:verification-protocol` 「기존 계약 테스트 갱신」).
@@ -293,7 +295,7 @@ git -C <워크트리> merge --no-ff <이슈브랜치> -m "chore : 이슈 브랜�
 이슈 #<N>의 모듈 묶음 <M1: 이름> (<T1>~<T3>)을 구현한다.   (light: "묶음 M1~M<k> 전부")
 
 [spec] <spec_dir>/issue-<N>.md 의 <M1> — 워크트리에 커밋돼 있다
-[프로젝트 값] check_cmd=<…>, test_file_cmd=<…>, src_dirs=<…>, tests_dir=<…>, contract_tests_dir=<…>
+[프로젝트 값] check_cmd=<…>, test_file_cmd=<…>, src_dirs=<…>, tests_dir=<…>, contract_tests_dir=<…>, test_policy=<…, null이면 뺀다>
 [계약] 이 묶음이 소비·생산하는 계약만 — 항목마다 절 위치(<contract_skill>의 파일·절)와 원문 인용.
        한 줄 요약을 붙여도 색인일 뿐 기대값 근거가 아니다 — 요약대로 구현하면 계약과 갈린다
 [답변된 전제] answer가 있는 open_questions만
@@ -327,6 +329,8 @@ full은 팀원을 종료하고 서브에이전트로 검증한다 — 팀 안에
 `4a` → `4b` 순서를 뒤집지 않는다 — 명세를 먼저 읽으면 코드를 명세대로 본다.
 
 검증이 수정을 요구하면 `SendMessage(to: "impl-<N>")`로 되돌리고, 수정 커밋 뒤 해당 검증만 다시 한다.
+`4b`의 테스트 정책 위반은 출처로 보낸다 — 승인된 테스트 목록 기대값이면 spec을 고쳐 `2b` 재승인, 계약 테스트면 `3a-test`를
+다시 부르고(위반 지점을 프롬프트에), 그 밖의 테스트면 구현자(`Test-Change:`). 구현자는 기대값·계약 테스트를 고칠 수 없다.
 
 **`4c-make-check`** — **워크트리에서** `check_cmd` 1회. 머지 전 이슈 브랜치는 구조상 깨져 있으므로
 (`issue-harness:issue-workflow` 8절) primary가 아니라 워크트리 HEAD를 검사한다.
