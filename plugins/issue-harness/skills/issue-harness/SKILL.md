@@ -102,10 +102,11 @@ light→full로 오르면 모드만 `pr_mode.full`로 다시 제안하고 push�
 - 에이전트는 상태 파일을 쓰지 않는다. 보고에 적고 오케스트레이터가 옮긴다.
 - 에이전트가 끝날 때마다: 보고 읽기 → 블로커·질문을 `state.json`에 옮기기 → `check-state.py` →
   진행 지점 복원 → 전이 규칙 1번부터.
-- 이슈 착수 시 `state.json`을 초기화하고 `ACTIVE`를 쓴다. 끝나면 `ACTIVE`를 넘기거나 지운다.
+- 이슈 착수 시 `state.json`을 초기화하고 `ACTIVE`를 쓴다(`--init <N>`). 끝나면 `ACTIVE`를 넘기거나 지운다.
 
 ```bash
-python3 "${CLAUDE_PLUGIN_ROOT}/scripts/check-state.py"
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/check-state.py"            # 검사
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/check-state.py" --init <N>   # 초기화 + ACTIVE — 이미 있으면 덮어쓰지 않는다
 ```
 
 훅은 기계적 게이트(커밋 메시지 형식, 테스트 변경 선언, 종료 기록)에만 쓴다. 다음 에이전트 판단은
@@ -144,7 +145,7 @@ cat .harness/issue-<N>/state.json
    있으므로 먼저를 고르면 멈춘다. 보이지 않으면 묻지 않는다.
 4. 이슈 브랜치 확인·생성 (`branch_pattern`).
 5. `_workspace/` 생성 (갱신 실행이면 기존 것을 `_workspace_<타임스탬프>/`로 옮긴다).
-6. `state.json` 초기화, `ACTIVE` 기록.
+6. `state.json` 초기화, `ACTIVE` 기록 — `check-state.py --init <N>` 한 번. 형식을 손으로 쓰지 않는다.
 
 ### Phase 2: 계획
 
@@ -238,9 +239,21 @@ Agent(subagent_type: "issue-harness:implementer", isolation: "worktree", name: "
    - full: 3c — integration-qa(model: <models.qa>)에 <워크트리 경로>와 이 묶음의 경계면을 준다
    - 전이 규칙 1번부터
 
-③ 다음 go — 같은 워크트리·같은 맥락
+③ 다음 go — 같은 워크트리·같은 맥락. 직전에 이슈 브랜치 반영(아래)
 SendMessage(to: "impl-<N>", message: <템플릿 — 다음 묶음, 3c 지적은 [이전 실패 원인]>)
 ```
+
+**go 직전 반영** — 구현 중 사람이 승인한 계약·spec 커밋이 이슈 브랜치에 들어가면(`issue-harness:issue-workflow`
+8절 규칙 1 예외) 워크트리는 그것을 모른다. 첫 go는 HEAD에서 갈라지므로 해당 없다. 다음 go(`SendMessage`·`4b`·`4f` 되돌림 포함)마다
+먼저 확인한다. 워크트리 브랜치는 첫 go 완료 알림에 있다(못 찾으면 `issue-harness:harness-state` 「구현 워크트리 찾기」):
+
+```bash
+git log --oneline <워크트리브랜치>..<이슈브랜치>     # 비었으면 할 일 없음
+git -C <워크트리> status --porcelain                 # 비어 있어야 한다 — 아니면 머지하지 않고 구현자에게 커밋부터 시킨다
+git -C <워크트리> merge --no-ff <이슈브랜치> -m "chore : 이슈 브랜치의 계약·spec 갱신을 워크트리에 반영한다 (#<N>)"
+```
+
+반영했으면 템플릿 `[반영]`에 커밋 목록을 담는다. 충돌이 나면 손으로 풀지 않고 `git -C <워크트리> merge --abort` 뒤 사람에게 보고한다.
 
 | 경로 | go 단위 | 묶음 사이 |
 |---|---|---|
@@ -257,6 +270,7 @@ SendMessage(to: "impl-<N>", message: <템플릿 — 다음 묶음, 3c 지적은 
 [계약] 이 묶음이 소비·생산하는 스키마만 발췌 (<contract_skill>)
 [답변된 전제] answer가 있는 open_questions만
 [이전 실패 원인] 재호출·3c 지적이 있을 때만 — 빼먹으면 같은 실패를 반복한다
+[반영] go 직전 반영한 커밋이 있을 때만 — 바뀐 spec·계약 절을 다시 읽으라고 적는다
 [주의] 이 묶음에 걸리는 기존 blocker
 ```
 

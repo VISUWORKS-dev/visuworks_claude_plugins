@@ -8,6 +8,9 @@ v3: 진행 지점(phase·agents·test_list 등)은 git 로그가 정본이다. s
 허용 키 밖은 거부한다.
 
 사용: python3 "${CLAUDE_PLUGIN_ROOT}/scripts/check-state.py" [경로...]
+      python3 "${CLAUDE_PLUGIN_ROOT}/scripts/check-state.py" --init <N>
+      --init은 primary에 `.harness/issue-<N>/state.json` 초기화 블록과 `ACTIVE`를 쓴다.
+      이미 있으면 덮어쓰지 않는다 — 남은 질문·블로커를 지우면 안 된다.
       인자가 없으면 primary의 `.harness/ACTIVE` 이슈 하나. ACTIVE가 없으면 검사할 것이 없다.
       ACTIVE가 `issue-<N>`이 아니거나 가리키는 state.json이 없으면 위반이다 — 조용히 통과하면 검사가 없는 것과 같다.
       끝난 이슈의 옛(v2) state.json은 검사하지 않는다 — 활성 이슈마다 실패하면 안 된다.
@@ -17,9 +20,10 @@ import json
 import re
 import subprocess
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 
-# issue-harness:harness-state 스킬 「스키마」와 1:1이다. 하나를 바꾸면 둘 다 바꾼다.
+# issue-harness:harness-state 스킬 「스키마」·「초기화」와 1:1이다(`init()`의 블록 포함). 하나를 바꾸면 모두 바꾼다.
 ALLOWED = {"issue", "updated_at", "open_questions", "blockers", "handoff_to_human"}
 REQUIRED = {"issue", "open_questions", "blockers", "handoff_to_human"}
 SEVERITY = {"demo_blocker", "defect", "improvement"}
@@ -119,8 +123,28 @@ def check_fork(root: Path, issues: list) -> list:
     return bad
 
 
+def init(root: Path, n: str) -> int:
+    if not re.fullmatch(r"[1-9][0-9]*", n):
+        print(f"--init {n!r} — 이슈 번호여야 한다", file=sys.stderr)
+        return 1
+    target = root / ".harness" / f"issue-{n}" / "state.json"
+    if target.exists():
+        print(f"{target}가 이미 있다 — 덮어쓰지 않는다. 이어서 하려면 Phase 0", file=sys.stderr)
+        return 1
+    target.parent.mkdir(parents=True, exist_ok=True)
+    # harness-state 스킬 「초기화」 블록과 같다
+    d = {"issue": int(n), "updated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+         "open_questions": [], "blockers": [], "handoff_to_human": []}
+    target.write_text(json.dumps(d, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    (root / ".harness/ACTIVE").write_text(f"issue-{n}\n", encoding="utf-8")
+    print(f"초기화: {target}, ACTIVE=issue-{n}")
+    return 0
+
+
 def main(argv: list) -> int:
     root = primary_root()
+    if argv[:1] == ["--init"]:
+        return init(root, argv[1] if len(argv) == 2 else " ".join(argv[1:]))
     active = root / ".harness/ACTIVE"
     paths = [Path(a) for a in argv]
     bad = []
