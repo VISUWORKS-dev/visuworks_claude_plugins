@@ -75,7 +75,7 @@ light→full로 오르면 모드 질문만 `pr_mode.full`을 추천안으로 다
 판정이 애매하면 full이다. light 진행 중 계약 변경이 필요해지면 full로 올린다(`issue-harness:harness-state` 전이 규칙 6).
 
 **작은 이슈** — 테스트 목록이 3항목 이하·묶음 1개로 예상되면 `issue-planner`를 부르지 않고 오케스트레이터가 spec을
-직접 쓴다. 입력(부모 이슈·GLOSSARY·ADR)·형식·테스트 목록 규약은 `issue-harness:issue-planner` 정의를 그대로 따르고, 승인 게이트(`2b`)는 생략하지 않는다.
+직접 쓴다. 입력(부모 이슈·GLOSSARY·ADR·`test_policy`)·형식·테스트 목록 규약은 `issue-harness:issue-planner` 정의를 그대로 따르고, 승인 게이트(`2b`)는 생략하지 않는다.
 
 ## 에이전트
 
@@ -208,9 +208,7 @@ Agent(subagent_type: "issue-harness:integration-qa",    name: "qa",       model:
 
 팀원 프롬프트에 넣는 규칙:
 - 계약이 바뀌면 `contract`가 **팀 전원과 오케스트레이터에게 통보한다.** 구현자에게는 오케스트레이터가 다음 "go"에 담는다.
-- 보고는 한 번 — 팀원으로 돌면 `SendMessage` 한 통(마지막 텍스트는 한 줄), 서브에이전트로 돌면 마지막 텍스트.
-  보고 밖에서 오케스트레이터에게 보내는 통보는 계약 변경뿐이고 `demo_blocker`는 보고 맨 앞에 둔다
-  (`issue-harness:harness-state` 「경과 — `events.jsonl`」).
+- 보고는 한 번, 보고 밖 통보는 계약 변경뿐 — 팀원은 `SendMessage` 한 통, 서브에이전트는 마지막 텍스트 (`issue-harness:harness-state` 「경과 — `events.jsonl`」)
 
 agent teams가 꺼졌거나 `-p` 세션이면 같은 호출이 서브에이전트로 돈다 — 통보는 오케스트레이터가 잇는다.
 

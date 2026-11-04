@@ -98,7 +98,8 @@ except Exception:
 if not isinstance(cfg, dict):
     notes.append(".claude/harness.config.json을 JSON 객체로 읽을 수 없다 — 템플릿과 비교해 직접 고친다")
     cfg = {}
-for k, why in (("models", "역할별 모델, 없으면 model"), ("test_file_cmd", "부분 테스트, 없으면 check_cmd")):
+for k, why in (("models", "역할별 모델, 없으면 model"), ("test_file_cmd", "부분 테스트, 없으면 check_cmd"),
+               ("test_policy", "테스트 정책 문서, 없으면 2a·2b·4b 정책 대조 생략")):
     if cfg and k not in cfg:
         notes.append(f".claude/harness.config.json에 {k!r}가 없다 — 생략 가능({why}). 템플릿: {TPL / 'harness.config.json'}")
 
