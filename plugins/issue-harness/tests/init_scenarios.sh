@@ -16,10 +16,10 @@ ok "커밋 전 .githooks 커밋 안내" "grep -q '.githooks/.를 커밋한다' $
 git -C $R add .githooks; git -C $R commit -qm "chore : 훅"; run; ok "커밋 후 안내 없음" "! grep -q '.githooks/.를 커밋한다' $R/out"; rm -rf $R
 new; echo .githooks/ > $R/.gitignore; run; run; ok "gitignore된 .githooks도 커밋 안내" "grep -q '.githooks/.를 커밋한다' $R/out"; rm -rf $R
 # 2 옛 프로젝트: 하네스가 깐 pre-commit을 커밋해 둠, 옛 commit-msg, 새 키 없는 config, 진행 중인 v2 state
-new; mkdir -p $R/.githooks $R/.claude $R/.harness/issue-3
+new; git -C $R switch -qc 3-old; mkdir -p $R/.githooks $R/.claude $R/.harness/issue-3
 old pre-commit > $R/.githooks/pre-commit; old commit-msg > $R/.githooks/commit-msg; old _harness.py > $R/.githooks/_harness.py
 echo '{"model": "opus", "check_cmd": "make check"}' > $R/.claude/harness.config.json; cp $R/.claude/harness.config.json $R/cfg
-echo issue-3 > $R/.harness/ACTIVE; echo '{"issue": 3, "phase": "3-implement", "status": "in_progress"}' > $R/.harness/issue-3/state.json
+echo '{"issue": 3, "phase": "3-implement", "status": "in_progress"}' > $R/.harness/issue-3/state.json
 git -C $R add .githooks; git -C $R commit -qm init
 run --dry-run; ok "dry-run은 pre-commit을 남긴다" "[ -f $R/.githooks/pre-commit ] && grep -q '삭제 .githooks/pre-commit' $R/out"
 run
@@ -29,19 +29,21 @@ ok "commit-msg 교체 안내" "grep -q 'cp .*/.githooks/commit-msg$' $R/out"
 ok "config 그대로" "cmp -s $R/cfg $R/.claude/harness.config.json"
 ok "models·test_file_cmd 생략 가능 안내" "grep -q \"'models'가 없다\" $R/out && grep -q \"'test_file_cmd'가 없다\" $R/out"
 ok "옛 state 경고" "grep -q '경고: .harness/issue-3/state.json가 옛 형식' $R/out"
-git -C $R worktree add -q $R/wt 2>/dev/null; W=$R/wt run; W=
+git -C $R worktree add -q $R/wt -b 3-wt 2>/dev/null; W=$R/wt run; W=
 ok "워크트리에서도 primary의 옛 state 경고" "grep -q '경고: .harness/issue-3/state.json' $R/out"
-run; ok "업그레이드 후 재실행 쓰기 0건" "grep -q '^만듦: 없음' $R/out"; rm -rf $R
+run; ok "업그레이드 후 재실행 쓰기 0건" "grep -q '^만듦: 없음' $R/out"
+echo issue-3 > $R/.harness/ACTIVE; run; ok "남은 옛 ACTIVE 삭제 안내" "grep -q 'ACTIVE는 더 쓰지 않는다' $R/out"; rm -rf $R
 # 3 사람이 고친 옛 pre-commit은 지우지 않고 rc 1 / 하네스와 무관한 pre-commit은 언급도 안 한다
 new; mkdir -p $R/.githooks; { old pre-commit; echo '# 우리 팀 추가'; } > $R/.githooks/pre-commit; run
 ok "고친 pre-commit 보존·안내·rc 1" "rc 1 && [ -f $R/.githooks/pre-commit ] && grep -q '고친 옛 하네스 훅' $R/out"; rm -rf $R
 new; mkdir -p $R/.githooks; printf '#!/bin/sh\nruff check .\n' > $R/.githooks/pre-commit; run
 ok "무관한 pre-commit 보존·무언급" "rc 0 && [ -f $R/.githooks/pre-commit ] && ! grep -q 'pre-commit' $R/out"; rm -rf $R
-# 4 깨진 입력에서 죽지 않는다: config가 객체 아님, ACTIVE 비었음·디렉터리, state 깨짐
-new; mkdir -p $R/.claude $R/.harness; echo 5 > $R/.claude/harness.config.json; : > $R/.harness/ACTIVE
+# 4 깨진 입력에서 죽지 않는다: config가 객체 아님, 이슈 브랜치 아님·state 없음·디렉터리, state 깨짐
+new; mkdir -p $R/.claude $R/.harness; echo 5 > $R/.claude/harness.config.json
 echo '{"phase": 1}' > $R/.harness/state.json; run
-ok "config 숫자·ACTIVE 빔" "rc 0 && grep -q 'JSON 객체로 읽을 수 없다' $R/out && ! grep -q '경고:' $R/out"
-rm $R/.harness/ACTIVE; mkdir $R/.harness/ACTIVE; run; ok "ACTIVE가 디렉터리" "rc 0"
-rmdir $R/.harness/ACTIVE; echo issue-1 > $R/.harness/ACTIVE; mkdir $R/.harness/issue-1; echo '{' > $R/.harness/issue-1/state.json
+ok "config 숫자·이슈 브랜치 아님" "rc 0 && grep -q 'JSON 객체로 읽을 수 없다' $R/out && ! grep -q '경고:' $R/out"
+git -C $R switch -qc 1-x; run; ok "이슈 브랜치, state 없음" "rc 0"
+mkdir -p $R/.harness/issue-1/state.json; run; ok "state.json이 디렉터리" "rc 0"
+rmdir $R/.harness/issue-1/state.json; echo '{' > $R/.harness/issue-1/state.json
 run; ok "state.json 깨짐" "rc 0 && ! grep -q '경고:' $R/out"; rm -rf $R
 echo "pass=$pass fail=$fail"; [ $fail = 0 ]

@@ -118,7 +118,7 @@ tracked 파일이다. 오케스트레이터·에이전트(모델)와 git hook(�
   "tests_dir": "tests/",                   // 테스트 변경 선언 검사·refact/style 커밋의 변경 금지 대상
   "contract_tests_dir": "tests/contract/", // integration-qa 소유
   "spec_dir": "docs/specs",                // spec = <spec_dir>/issue-<N>.md
-  "branch_pattern": "<N>-<slug>",          // 이슈 브랜치 이름 규칙
+  "branch_pattern": "<N>-<slug>",          // 이슈 브랜치 이름 규칙 — <N>-로 시작해야 활성 이슈를 찾는다
   "contract_skill": null,                  // 계약 정본 스킬 이름. null이면 spec의 계약 절이 정본
   "domain_agents": [                       // 팀에 넣을 프로젝트 에이전트
     // { "name": "my-domain-expert", "decides": "무엇을 담을지", "writes": ["docs/", "_workspace/"] }
@@ -137,7 +137,8 @@ tracked 파일이다. 오케스트레이터·에이전트(모델)와 git hook(�
 
 ## 상태 검사
 
-오케스트레이터가 `state.json`을 쓸 때마다 돌린다. 터미널에서 직접 돌리려면 플러그인 경로가 필요하다:
+오케스트레이터가 `state.json`을 쓸 때마다 돌린다. 인자가 없으면 현재 브랜치의 이슈를 검사하므로 이슈 브랜치에서 돌린다
+(아니면 실패한다). 터미널에서 직접 돌리려면 플러그인 경로가 필요하다:
 
 ```bash
 python3 "$(claude plugin list --json | python3 -c 'import json,sys;print(next(p["installPath"] for p in json.load(sys.stdin) if p["id"]=="issue-harness@visuworks-marketplace"))')/scripts/check-state.py"
@@ -148,7 +149,8 @@ python3 "$(claude plugin list --json | python3 -c 'import json,sys;print(next(p[
 ## 훅의 동작 범위
 
 훅(`SubagentStop`, `SendMessage`의 `PostToolUse`)은 플러그인이 켜진 **모든 세션**에서 발화한다. git 레포가 아니거나
-`.harness/ACTIVE`가 없으면 로그도 남기지 않고 끝난다. 하네스 안에서의 기록·건너뜀·실패는
+현재 브랜치의 이슈에 `.harness/issue-<N>/state.json`이 없으면 로그도 남기지 않고 끝난다
+(판정: `issue-harness:harness-state` 「파일 셋 — 누가 쓰는가」). 하네스 안에서의 기록·건너뜀·실패는
 `~/.claude/harness-hook.log`(`HARNESS_HOOK_LOG`로 변경)에 남는다.
 
 한계: auto 모드 등에서 서브에이전트가 `SubagentHandback`으로 보고하면 훅이 받는

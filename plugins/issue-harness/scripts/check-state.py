@@ -9,10 +9,10 @@ v3: 진행 지점(phase·agents·test_list 등)은 git 로그가 정본이다. s
 
 사용: python3 "${CLAUDE_PLUGIN_ROOT}/scripts/check-state.py" [경로...]
       python3 "${CLAUDE_PLUGIN_ROOT}/scripts/check-state.py" --init <N>
-      --init은 primary에 `.harness/issue-<N>/state.json` 초기화 블록과 `ACTIVE`를 쓴다.
+      --init은 primary에 `.harness/issue-<N>/state.json` 초기화 블록을 쓴다.
       이미 있으면 덮어쓰지 않는다 — 남은 질문·블로커를 지우면 안 된다.
-      인자가 없으면 primary의 `.harness/ACTIVE` 이슈 하나. ACTIVE가 없으면 검사할 것이 없다.
-      ACTIVE가 `issue-<N>`이 아니거나 가리키는 state.json이 없으면 위반이다 — 조용히 통과하면 검사가 없는 것과 같다.
+      인자가 없으면 현재 브랜치의 이슈 하나(`active_issue`). 이슈를 얻을 수 없거나 그 state.json이 없으면
+      위반이다 — 조용히 통과하면 검사가 없는 것과 같다.
       끝난 이슈의 옛(v2) state.json은 검사하지 않는다 — 활성 이슈마다 실패하면 안 된다.
 종료 코드: 0 통과 / 1 위반
 """
@@ -41,6 +41,22 @@ def primary_root() -> Path:
         return Path(common).parent
     except Exception:
         return Path.cwd()
+
+
+def active_issue(cwd=None):
+    """현재 브랜치의 이슈 디렉터리 이름(`issue-<N>`). 얻을 수 없으면 None.
+
+    이슈 브랜치는 `<N>-<slug>`, 구현 워크트리(`worktree-agent-*`)는 HEAD의 가장 최근 spec 커밋 번호다.
+    `--first-parent` — 기본 브랜치를 이슈 브랜치에 머지하면(5a) 다른 이슈의 spec 커밋이 이력에 들어온다.
+    세션마다 자기 브랜치로 판정한다 — 공용 파일 한 칸이면 병렬 세션이 서로 덮어쓴다 (#29).
+    record-agent-event.py·githooks/_harness.py와 같다(init.py는 이슈 브랜치만 본다). 하나를 바꾸면 모두 바꾼다."""
+    def git(*a):
+        return subprocess.run(["git", *a], capture_output=True, text=True, cwd=cwd).stdout.strip()
+    b = git("branch", "--show-current")
+    m = re.match(r"([1-9][0-9]*)-", b)
+    if not m and b.startswith("worktree-agent-"):
+        m = re.search(r"#([1-9][0-9]*) spec", git("log", "-1", "--first-parent", "--format=%s", "-E", "--grep=^docs : 이슈 #[0-9]+ spec"))
+    return f"issue-{m.group(1)}" if m else None
 
 
 def check(path: Path) -> list:
@@ -136,8 +152,7 @@ def init(root: Path, n: str) -> int:
     d = {"issue": int(n), "updated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
          "open_questions": [], "blockers": [], "handoff_to_human": []}
     target.write_text(json.dumps(d, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    (root / ".harness/ACTIVE").write_text(f"issue-{n}\n", encoding="utf-8")
-    print(f"초기화: {target}, ACTIVE=issue-{n}")
+    print(f"초기화: {target}")
     return 0
 
 
@@ -145,21 +160,17 @@ def main(argv: list) -> int:
     root = primary_root()
     if argv[:1] == ["--init"]:
         return init(root, argv[1] if len(argv) == 2 else " ".join(argv[1:]))
-    active = root / ".harness/ACTIVE"
     paths = [Path(a) for a in argv]
     bad = []
-    if not paths and active.exists():
-        name = active.read_text(encoding="utf-8").strip()
-        target = root / ".harness" / name / "state.json"
-        if not re.fullmatch(r"issue-\d+", name):
-            bad.append(f"ACTIVE={name!r} — `issue-<N>` 형식이어야 한다 (harness-state 「상태 파일」)")
+    if not paths:
+        name = active_issue()
+        target = root / ".harness" / str(name) / "state.json"
+        if name is None:
+            bad.append("현재 브랜치에서 이슈 번호를 얻을 수 없다 — 이슈 브랜치(`<N>-<slug>`)에서 돌리거나 경로를 준다")
         elif not target.exists():
-            bad.append(f"ACTIVE가 가리키는 {target}가 없다 — 초기화했는지, ACTIVE가 맞는 이슈인지 확인한다")
+            bad.append(f"{target}가 없다 — `--init {name[6:]}`으로 초기화했는지, 맞는 이슈 브랜치인지 확인한다")
         else:
             paths = [target]
-    if not paths and not bad:
-        print("state.json 없음 — 검사할 것이 없다")
-        return 0
 
     bad += [e for p in paths for e in check(p)] + check_fork(root, [p.parent.name for p in paths])
     if bad:

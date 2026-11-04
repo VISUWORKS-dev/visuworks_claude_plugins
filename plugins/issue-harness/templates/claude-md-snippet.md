@@ -10,7 +10,7 @@ push · PR 생성은 범위 산정 때 사람이 확정한 PR 줄대로 한다. 
 **프로젝트 값:** `.claude/harness.config.json` — 검증 명령, 소스·테스트 경로, 계약 스킬, 도메인 에이전트.
 
 **정본 분리:** spec은 `<spec_dir>/issue-<N>.md`(tracked), 런타임 상태는 `.harness/`(gitignore).
-`state.json`은 오케스트레이터만 쓰고 `events.jsonl`은 훅만 append한다. 활성 이슈는 `.harness/ACTIVE`
+`state.json`은 오케스트레이터만 쓰고 `events.jsonl`은 훅만 append한다. 활성 이슈는 현재 브랜치(이슈 브랜치 `<N>-<slug>`)로 정한다
 (`issue-harness:harness-state`).
 
 **구현은 테스트 목록 기반 TDD** (`issue-harness:tdd-cycle`). 진행 정본은 `git log <spec 커밋>..HEAD --grep "^Tests: T"`.

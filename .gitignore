@@ -3,3 +3,6 @@
 
 # mac 관련 임시파일
 .DS_Store
+
+# python 캐시
+__pycache__/
