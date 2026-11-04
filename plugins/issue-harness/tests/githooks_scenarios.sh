@@ -1,5 +1,6 @@
 #!/bin/bash
-# commit-msg Test-Change 게이트 시나리오. 인자: githooks 디렉터리. PY=/usr/bin/python3 로 인터프리터 지정
+# commit-msg Test-Change 게이트 시나리오. 인자: githooks 디렉터리(기본 templates/githooks). PY=/usr/bin/python3 로 인터프리터 지정
+set -- "${1:-$(dirname "$0")/../templates/githooks}"
 [ -f "$1/commit-msg" ] || { echo "사용법: $0 <githooks 디렉터리> (templates/githooks)" >&2; exit 2; }
 H=$(cd "$1" && pwd) || exit 9; R=$(mktemp -d); cd $R; git init -q; mkdir -p .githooks tests
 cp $H/commit-msg $H/_harness.py .githooks/; chmod +x .githooks/commit-msg; git config core.hooksPath .githooks
