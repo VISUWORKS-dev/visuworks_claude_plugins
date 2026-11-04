@@ -225,6 +225,8 @@ git commit -m "docs : 이슈 #<N> 계약 — <계약명>[, <계약명>] confirme
 **계약을 바꿨으면** `qa` 프롬프트에 `3a` 계약 커밋 해시를 넣는다 — `qa`가 기존 계약 테스트를 찾아 고친다
 (`issue-harness:verification-protocol` 「기존 계약 테스트 갱신」).
 
+`qa` 보고의 `premises:`·`stale_unit_tests:`는 해당 묶음 go의 `[주의]`에 담는다(어느 묶음인지 모르면 첫 go).
+
 실패를 확인하면 **오케스트레이터가 커밋한다** — 워크트리는 HEAD에서 갈라지므로 커밋해야 구현자에게 간다.
 
 ```bash
@@ -285,7 +287,8 @@ git -C <워크트리> merge --no-ff <이슈브랜치> -m "chore : 이슈 브랜�
 [답변된 전제] answer가 있는 open_questions만
 [이전 실패 원인] 재호출·3c 지적이 있을 때만 — 빼먹으면 같은 실패를 반복한다
 [반영] go 직전 반영한 커밋이 있을 때만 — 바뀐 spec·계약 절을 다시 읽으라고 적는다
-[주의] 이 묶음에 걸리는 기존 blocker
+[주의] 이 묶음에 걸리는 기존 blocker, 3a-test 보고의 구현 전제(premises:),
+       옛 계약을 단정하는 단위 테스트(stale_unit_tests:) — 이 묶음에서 고치고 Test-Change: <대상> — 계약 <계약 커밋>
 ```
 
 spec을 발췌하지 않는다(워크트리에 있다). 완료 알림은 "끝났다"만 뜻한다 — 성공 여부는 보고의 `result:`·커밋·`3c`로 판정한다.

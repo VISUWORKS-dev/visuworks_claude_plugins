@@ -216,7 +216,7 @@ flowchart TD
   R --> F
   G -- "마지막 묶음" --> Z["Phase 4로"]
 </pre>
-<p class="cap">계약이 바뀌었으면 integration-qa는 계약 커밋의 변경 내용으로 기존 계약 테스트를 찾아 같은 커밋에서 함께 고칩니다.</p>
+<p class="cap">계약이 바뀌었으면 integration-qa는 계약 커밋의 변경 내용으로 기존 계약 테스트를 찾아 같은 커밋에서 함께 고칩니다. 옛 계약을 단정하는 단위 테스트는 목록만 보고하고, 구현자가 go의 [주의]로 받아 고칩니다. 테스트가 구현에 거는 전제(가짜를 끼우는 지점 등)도 같은 길로 갑니다.</p>
 </div>
 
 <h3>3a-test에서 보는 것 — 실패의 개수가 아니라 원인</h3>
@@ -226,6 +226,7 @@ flowchart TD
     <tr><td>구현이 없어서 실패 (함수 없음, 계약 값과 다름, 제품 CLI의 실패 exit code)</td><td>정상 — 넘어갑니다</td></tr>
     <tr><td>통과</td><td>빈 테스트 — 다시 씁니다</td></tr>
     <tr><td>테스트가 직접 만든 가짜 스크립트의 문법·import 오류로 실패</td><td>테스트 결함 — 다시 씁니다</td></tr>
+    <tr><td>가짜 함수가 계약 시그니처보다 좁게 받음 (<code>lambda *args</code>) — 지금은 「구현 없음」으로 보여도 키워드로 부르는 구현에서 실패</td><td>테스트 결함 — 다시 씁니다</td></tr>
   </tbody>
 </table></div>
 
@@ -322,6 +323,7 @@ flowchart TD
   <li><span class="when">2026-11-03 · #36·#38</span><span class="what">spec은 이슈 완료 조건을 C 번호로만 참조, PR 줄은 사람이 확정</span><span class="because">이슈와 spec 두 곳에 같은 조건을 쓰면 어긋났습니다. push 여부를 설정만 보고 정하면 사람이 모르는 push가 생겼습니다.</span></li>
   <li><span class="when">2026-11-04 · #40·#43</span><span class="what">3a 계약 커밋, 4a·4b에 워크트리 경로 전달</span><span class="because">평가 1회차에서 워크트리가 옛 계약과 새 계약 테스트를 함께 받는 것, 검증자가 구현이 없는 primary를 보는 것이 드러났습니다.</span></li>
   <li><span class="when">2026-11-04 · #32·#44</span><span class="what">구현 중 승인된 계약·spec을 다음 go 직전 워크트리에 반영</span><span class="because">워크트리는 HEAD에서 갈라진 뒤 이슈 브랜치의 새 커밋을 모릅니다.</span></li>
+  <li><span class="when">2026-11-04 · #49</span><span class="what">가짜는 계약 시그니처대로, 구현 전제·옛 계약 단위 테스트를 go의 [주의]로</span><span class="because">평가 2회차에서 <code>lambda *args</code> 가짜가 키워드로 부르는 구현을 거부했고, 가짜를 끼우는 지점이 가져오기 방식을 묶는데 구현자가 몰랐고, 옛 계약을 단정하는 단위 테스트를 고칠 길이 없었습니다.</span></li>
   <li><span class="when">2026-11-04 · #30</span><span class="what">실패 원인 판정, 계약 원문 인용, 기대값 출처 점검, 기존 계약 테스트 갱신</span><span class="because">늘 통과하는 테스트가 최종 검증까지 갔고, 테스트 자체 오류가 「구현 없음」으로 커밋됐고, 한 줄 요약을 받은 구현자가 계약대로 만들고도 충돌로 보고했고, 바뀐 계약을 단정하는 옛 테스트를 놓쳤습니다.</span></li>
 </ol>
 </section>
