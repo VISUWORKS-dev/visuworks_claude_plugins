@@ -60,9 +60,9 @@ git commit -m "docs : 이슈 #<N> spec — 테스트 목록 <n>항목"
 ```
 
 **런타임 상태(`.harness/`)는 gitignore되어 따라오지 않는다.** 구현자는 상태 파일을
-읽지도 쓰지도 않는다 — 오케스트레이터가 현재 항목·계약·이전 실패 원인을 프롬프트에 담아
-넘기고, 돌아온 보고를 primary의 `state.json`에 반영한다. 경과는 훅이 primary에
-기록한다 (`issue-harness:harness-state`).
+읽지도 쓰지도 않는다 — 오케스트레이터가 이번 묶음·계약(절 위치 + 원문 인용)·이전 실패 원인을
+프롬프트에 담아 넘기고(`issue-harness:issue-harness` Phase 3 템플릿), 돌아온 보고를 primary의
+`state.json`에 반영한다. 경과는 훅이 primary에 기록한다 (`issue-harness:harness-state`).
 
 제품 코드에 전달할 것이 있으면 그것만 커밋한다:
 
@@ -141,7 +141,7 @@ Claude Code 워크트리는 gitignore된 의존성 설치 디렉터리(가상환
 판단할 수 없고, 되돌릴 때 함께 날아간다. 상세: `issue-harness:tdd-cycle`
 
 - **작업 단위로 커밋한다.** 테스트 목록 항목 여러 개를 한 커밋에 묶을 수 있다
-  (꼬릿말 `Tests: T1,T2`). 단 **모듈 묶음(오케스트레이터가 한 번에 보낸 단위)을 넘어서 묶지 않는다** —
+  (꼬릿말 `Tests: T1,T2`). 단 **오케스트레이터가 한 번에 보낸 단위(full은 모듈 묶음 하나, light는 묶음 전체)를 넘어서 묶지 않는다** —
   3c 검증과 되돌리기가 그 단위로 일어난다.
 - **기존 테스트를 지우거나 바꾸면 꼬릿말로 선언한다** — `Test-Change: <대상> — <사유 또는 대체 ID>`.
   대상은 함수 이름, 클래스 메서드는 `Class.test_x`, 파일 전체는 `<경로>::*`. 선언이 없으면 `commit-msg` 훅이
