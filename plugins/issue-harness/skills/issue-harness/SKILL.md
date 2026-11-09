@@ -92,7 +92,7 @@ light→full로 오르면 모드 질문만 `pr_mode.full`을 추천안으로 다
 
 | 호출 | `name` | 무엇이 되나 |
 |---|---|---|
-| 계획(`2a`), 최종 검증(`4a`·`4b`) | 주지 않는다 | 서브에이전트 — 팀에서 분리 |
+| 계획(`2a`), 최종 검증(`4a`·`4b`), 검증 뒤 계약·도메인 수정 | 주지 않는다 | 서브에이전트 — 팀에서 분리 |
 | 구현(`3b`) | `impl-<N>` + `isolation: "worktree"` | 서브에이전트 (`SendMessage`로 이어감) |
 | full의 Phase 3 팀원 | `contract`·`domain`·`qa` | 팀원 |
 
@@ -317,6 +317,9 @@ spec을 발췌하지 않는다(워크트리에 있다). 완료 알림은 "끝났
 ### Phase 4: 최종 검증
 
 full은 팀원을 종료하고 서브에이전트로 검증한다 — 팀 안에서 검증하면 구현 맥락에 물든다.
+`4a` 전에 팀원마다 `TaskStop(task_id: "<name>")`(`contract`·`domain`·`qa`)을 부르고 `ListAgents`의 Teammates가 비었는지 확인한다.
+`SendMessage`로 종료를 요청하면 팀원 프로토콜 문자열이라 거절된다.
+검증 뒤 계약·도메인 수정이 필요하면 `name` 없는 서브에이전트로 부른다 — 수정이 남았다는 이유로 종료를 미루지 않는다.
 `4a`·`4b` 프롬프트에는 **구현 워크트리 경로**를 넣는다 — 검증자는 primary에서 돌고, 머지 전 primary에는 구현이 없다.
 
 **`4a-verify-blind`** (full만) — 명세를 주지 않는다. 프롬프트: `issue-harness:verification-protocol` 1단계.
@@ -369,6 +372,7 @@ git merge-base --is-ancestor origin/<기본 브랜치> HEAD || git merge --no-ff
    역할 에이전트는 여전히 push하지 않는다.
    보고는 완료한 단계마다 확인 가능한 증거를 단다 — 커밋 해시, `check_cmd` 결과 줄, 검증 보고서 경로,
    PR 링크, 인라인 코멘트 리뷰 URL. 증거가 없는 단계는 「안 함 — 이유」로 쓴다.
+   남은 팀원 수(`ListAgents` Teammates — 0명이어야 한다)와 구현 워크트리 정리 여부(정리함·남김 — 이유)도 적는다.
    아니면 아래 명령을 출력한다.
 
    ```
